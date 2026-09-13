@@ -1,5 +1,8 @@
 'use strict';
 
+const sharedTermsLayout = el('termsPerPlayer') && el('termsPerPlayer').closest('.termsSettings');
+if (sharedTermsLayout) sharedTermsLayout.style.gridTemplateColumns = '1fr';
+
 $$('[data-mode]').forEach((button) => button.addEventListener('click', () => {
   setMode(button.dataset.mode);
   el('modeDescription').textContent = state.mode === 'own' ? 'Eigene Begriffe gemeinsam sammeln.' : 'Begriffe automatisch wählen.';
