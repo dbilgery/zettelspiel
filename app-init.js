@@ -89,23 +89,11 @@
       setError(el('termError'), 'Keine weiteren Vorschläge verfügbar.');
       return;
     }
-    el('termInput').value = options[Math.floor(Math.random() * options.length)];
+    const input = el('termInput');
+    input.blur();
+    input.value = options[Math.floor(Math.random() * options.length)];
     setError(el('termError'));
     setSuccess('Vorschlag eingesetzt – übernehmen oder ändern.');
-    el('termInput').focus();
-    el('termInput').select();
-  });
-  on('passPhone', 'click', () => {
-    el('termInput').value = '';
-    setError(el('termError'));
-    setSuccess('');
-    el('privacyText').textContent = `${state.allTerms.length} von ${state.termTarget} Begriffen sind gesammelt.`;
-    show('privacy');
-  });
-  on('continueCollect', 'click', () => {
-    renderCollect();
-    show('collect');
-    requestAnimationFrame(() => el('termInput').focus());
   });
   on('startCollectedGame', 'click', prepareGame);
 
