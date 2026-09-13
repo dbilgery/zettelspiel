@@ -103,7 +103,7 @@ function startTurn() {
   turnDeadline = Date.now() + state.duration * 1000;
   el('playRound').textContent = rounds[state.round].title;
   const player = currentExplainer();
-  el('playPlayer').textContent = player ? `${state.teams[state.activeTeam]} · ${player.name}` : state.teams[state.activeTeam];
+  el('playPlayer').textContent = player ? player.name : '';
   nextWord();
   show('play');
   updateTimer();
