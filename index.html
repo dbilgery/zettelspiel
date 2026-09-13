@@ -8,7 +8,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Zettelspiel</title>
-  <link rel="stylesheet" href="styles.css?v=20260913-2018" />
+  <link rel="stylesheet" href="styles.css?v=20260913-2130" />
 </head>
 <body>
 <div class="app">
@@ -22,38 +22,43 @@
       <div class="hero">
         <div class="kicker">Ein Handy · Drei Runden · Null Vorbereitung</div>
         <h1>Das Zettelspiel.<br>Ohne Zettel.</h1>
-        <p class="lead">Spieler eintragen, Teams bilden, Begriffe sammeln und direkt losspielen.</p>
+        <p class="lead">Spieler eintragen, Teams bilden und losspielen – mit eigenen oder komplett zufälligen Begriffen.</p>
       </div>
+
       <div class="card stack">
-        <div class="row">
-          <div class="field">
-            <label for="duration">Rundenzeit</label>
-            <select id="duration">
-              <option value="30">30 Sekunden</option>
-              <option value="45">45 Sekunden</option>
-              <option value="60" selected>60 Sekunden</option>
-              <option value="90">90 Sekunden</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="perPlayer">Begriffe pro Person</label>
-            <select id="perPlayer">
-              <option value="2">2</option>
-              <option value="3" selected>3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-            </select>
+        <div class="field">
+          <label>Spielmodus</label>
+          <div class="modeGrid" id="modeGrid" role="radiogroup" aria-label="Spielmodus">
+            <button class="modeCard active" type="button" data-mode="own" role="radio" aria-checked="true">
+              <span class="modeIcon">✍️</span>
+              <span><strong>Eigene Begriffe</strong><small>Gemeinsam sammeln. Jeder trägt so viel oder wenig bei, wie ihm einfällt.</small></span>
+            </button>
+            <button class="modeCard" type="button" data-mode="random" role="radio" aria-checked="false">
+              <span class="modeIcon">🎲</span>
+              <span><strong>Zufällige Begriffe</strong><small>Die App wählt alle Begriffe. Niemand kennt sie vor dem Spiel.</small></span>
+            </button>
           </div>
         </div>
+
+        <div class="field">
+          <label for="duration">Rundenzeit</label>
+          <select id="duration">
+            <option value="30">30 Sekunden</option>
+            <option value="45">45 Sekunden</option>
+            <option value="60" selected>60 Sekunden</option>
+            <option value="90">90 Sekunden</option>
+          </select>
+        </div>
+
         <button class="btn primary" id="setupStart">Spiel einrichten</button>
       </div>
     </section>
 
     <section class="screen" id="players">
       <div class="sectionHead">
-        <div class="step">1 von 3</div>
+        <div class="step">1 von 2</div>
         <h2>Wer spielt mit?</h2>
-        <p class="lead">Tragt alle Spieler ein. Die Teams kommen im nächsten Schritt.</p>
+        <p class="lead">Tragt alle Spieler ein. Danach werden die Teams gebildet.</p>
       </div>
 
       <div class="card stack">
@@ -64,6 +69,20 @@
         </form>
         <p class="formError" id="playerError" role="alert" hidden></p>
         <div class="playerList" id="playerList"></div>
+
+        <div class="targetCard" id="targetCard" hidden>
+          <div>
+            <strong>Begriffe insgesamt</strong>
+            <div class="hint" id="targetHint">Empfohlen: 18 Begriffe</div>
+          </div>
+          <div class="targetControl">
+            <button type="button" class="stepper" id="targetMinus" aria-label="Weniger Begriffe">−</button>
+            <input id="termTarget" type="number" inputmode="numeric" min="6" max="80" value="6" aria-label="Anzahl Begriffe insgesamt" />
+            <button type="button" class="stepper" id="targetPlus" aria-label="Mehr Begriffe">+</button>
+          </div>
+          <button class="textButton" type="button" id="useRecommendedTarget">Empfehlung verwenden</button>
+        </div>
+
         <div class="setupFooter">
           <span class="hint" id="playerSetupHint">Mindestens 2 Spieler benötigt.</span>
           <button class="btn primary" id="toTeams" disabled>Weiter zu den Teams</button>
@@ -73,7 +92,7 @@
 
     <section class="screen" id="teams">
       <div class="sectionHead">
-        <div class="step">2 von 3</div>
+        <div class="step">2 von 2</div>
         <h2>Teams bilden</h2>
         <p class="lead">Lasst die Teams auslosen oder stellt sie selbst zusammen.</p>
       </div>
@@ -88,7 +107,7 @@
         <button class="btn secondary" id="shuffleTeams">Neu auslosen</button>
       </div>
       <div class="teamToolbar" id="manualControls" hidden>
-        <p class="hint"><strong>Ziehen & ablegen:</strong> Bewege einen Spieler in das andere Team. Auf dem Handy einfach gedrückt halten und ziehen.</p>
+        <p class="hint"><strong>Ziehen & ablegen:</strong> Bewege einen Spieler in das andere Team. Auf dem Handy gedrückt halten und ziehen.</p>
       </div>
 
       <div class="teamColumns" id="teamColumns" aria-live="polite"></div>
@@ -96,32 +115,44 @@
 
       <div class="actions two">
         <button class="btn secondary" id="backToPlayers">Zurück</button>
-        <button class="btn primary" id="confirmTeams">Teams übernehmen</button>
+        <button class="btn primary" id="confirmTeams">Weiter</button>
       </div>
     </section>
 
     <section class="screen" id="collect">
       <div class="sectionHead">
-        <div class="step">3 von 3</div>
-        <h2>Begriffe sammeln</h2>
-        <p class="lead">Eine Person nach der anderen. Nach dem Speichern wird der Bildschirm verdeckt.</p>
+        <div class="step">Begriffe sammeln</div>
+        <h2>Gemeinsamer Wortpool</h2>
+        <p class="lead">Jeder kann so viele Begriffe beitragen, wie ihm einfallen. Es wird nicht gespeichert, wer welchen Begriff eingetragen hat.</p>
       </div>
+
+      <div class="poolProgress">
+        <div class="poolProgressTop">
+          <strong id="poolCount">0 von 18</strong>
+          <span class="hint" id="poolRemaining">Noch 18 fehlen</span>
+        </div>
+        <div class="progressTrack"><div class="progressFill" id="progressFill"></div></div>
+      </div>
+
       <div class="card stack">
-        <div>
-          <div class="kicker">Jetzt dran</div>
-          <div class="personBadge" id="collectPlayerBadge">👤 Spieler</div>
-        </div>
         <div class="field">
-          <label id="termsLabel" for="termsInput">Deine Begriffe</label>
-          <textarea id="termsInput" placeholder="Einen Begriff pro Zeile" autocapitalize="sentences"></textarea>
-          <div class="hint" id="termHint"></div>
+          <label for="termInput">Begriff</label>
+          <input id="termInput" placeholder="z. B. Eiffelturm" maxlength="50" autocomplete="off" enterkeyhint="done" />
+          <div class="hint">Ein Begriff nach dem anderen. Namen, Orte, Gegenstände, Figuren – alles ist erlaubt.</div>
         </div>
+
         <p class="formError" id="termError" role="alert" hidden></p>
-        <button class="btn primary" id="savePlayer">Begriffe speichern</button>
+        <p class="successMessage" id="termSuccess" aria-live="polite" hidden></p>
+
+        <div class="collectActions">
+          <button class="btn primary" id="addTerm">Begriff hinzufügen</button>
+          <button class="btn secondary" id="suggestTerm">✨ Vorschlag einfügen</button>
+        </div>
       </div>
-      <div class="progressBlock">
-        <strong id="collectedCount">0 Begriffe gesammelt</strong>
-        <div class="hint" id="collectProgress"></div>
+
+      <div class="actions">
+        <button class="btn secondary" id="passPhone">Handy weitergeben</button>
+        <button class="btn primary" id="startCollectedGame" hidden>Spiel starten</button>
       </div>
     </section>
 
@@ -129,8 +160,8 @@
       <div class="handoff">
         <div class="bigemoji">🙈</div>
         <h2>Handy weitergeben</h2>
-        <p class="lead" id="privacyText">Die Begriffe wurden gespeichert und sind verborgen.</p>
-        <button class="btn primary" id="nextPlayer">Nächste Person</button>
+        <p class="lead centered" id="privacyText">Die bisherigen Begriffe sind verborgen.</p>
+        <button class="btn primary" id="continueCollect">Weiter sammeln</button>
       </div>
     </section>
 
@@ -208,6 +239,6 @@
     </section>
   </main>
 </div>
-<script src="app.js?v=20260913-2018"></script>
+<script src="app.js?v=20260913-2130"></script>
 </body>
 </html>
