@@ -1,8 +1,14 @@
 'use strict';
 
+function updateModeDescription() {
+  el('modeDescription').textContent = state.mode === 'own'
+    ? 'Ihr gebt die Wörter selbst ein.'
+    : 'Die Wörter werden automatisch gewählt.';
+}
+
 $$('[data-mode]').forEach((button) => button.addEventListener('click', () => {
   setMode(button.dataset.mode);
-  el('modeDescription').textContent = state.mode === 'own' ? 'Eigene Begriffe gemeinsam sammeln.' : 'Begriffe automatisch wählen.';
+  updateModeDescription();
 }));
 
 on('resetTop', 'click', () => {
@@ -147,3 +153,4 @@ window.addEventListener('pagehide', () => {
 });
 
 resume();
+updateModeDescription();
