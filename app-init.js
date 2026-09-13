@@ -1,160 +1,162 @@
 'use strict';
-  const obsoletePassButton = el('passPhone');
-  if (obsoletePassButton) obsoletePassButton.remove();
 
-  $$('[data-mode]').forEach((button) => button.addEventListener('click', () => setMode(button.dataset.mode)));
-  on('soundToggle', 'click', () => {
-    state.soundEnabled = !state.soundEnabled;
-    if (state.soundEnabled) {
-      ensureAudio();
-      tone(760, .06, .025);
-    }
-    save();
-  });
-  on('resetTop', 'click', () => {
-    if (confirm('Aktuelles Spiel wirklich neu starten?')) fullReset();
-  });
-  on('backButton', 'click', goBack);
+$$('[data-mode]').forEach((button) => button.addEventListener('click', () => {
+  setMode(button.dataset.mode);
+  el('modeDescription').textContent = state.mode === 'own' ? 'Eigene Begriffe gemeinsam sammeln.' : 'Begriffe automatisch wählen.';
+}));
 
-  on('setupStart', 'click', () => {
-    const mode = state.mode;
-    const soundEnabled = state.soundEnabled;
-    const duration = +el('duration').value;
-    state = fresh();
-    state.mode = mode;
-    state.soundEnabled = soundEnabled;
-    state.duration = duration;
-    state.started = true;
-    renderPlayers();
-    show('players');
-    requestAnimationFrame(() => el('newPlayer').focus());
-  });
+on('soundToggle', 'click', () => {
+  state.soundEnabled = !state.soundEnabled;
+  if (state.soundEnabled) {
+    ensureAudio();
+    tone(760, .06, .025);
+  }
+  save();
+});
 
-  on('playerForm', 'submit', (event) => {
+on('resetTop', 'click', () => {
+  if (confirm('Spiel neu starten?')) fullReset();
+});
+on('backButton', 'click', goBack);
+
+on('setupStart', 'click', () => {
+  const mode = state.mode;
+  const soundEnabled = state.soundEnabled;
+  const duration = +el('duration').value;
+  state = fresh();
+  state.mode = mode;
+  state.soundEnabled = soundEnabled;
+  state.duration = duration;
+  state.started = true;
+  renderPlayers();
+  show('players');
+  requestAnimationFrame(() => el('newPlayer').focus());
+});
+
+on('playerForm', 'submit', (event) => {
+  event.preventDefault();
+  addPlayer();
+});
+
+on('toTeams', 'click', () => {
+  if (state.players.length < 2) return;
+  if (state.teamMode === 'random') assignRandomTeams();
+  else ensureManualAssignment();
+  renderTeams();
+  show('teams');
+});
+
+on('randomTab', 'click', () => setTeamMode('random'));
+on('manualTab', 'click', () => setTeamMode('manual'));
+on('shuffleTeams', 'click', () => {
+  assignRandomTeams();
+  renderTeams();
+  vibrate(15);
+});
+
+on('termsPerPlayer', 'input', (event) => {
+  const value = Math.round(clamp(event.target.value, 3, 5));
+  state.termsPerPlayer = [value, value];
+  syncTermTarget();
+});
+
+on('confirmTeams', 'click', () => {
+  if (!validateTeams(true)) return;
+  state.termTarget = computeTermTarget();
+  state.allTerms = [];
+  state.teamTurnIndex = [0,0];
+  if (state.mode === 'random') {
+    prepareGame();
+  } else {
+    renderCollect();
+    show('collect');
+    requestAnimationFrame(() => el('termInput').focus());
+  }
+});
+
+on('addTerm', 'click', addCurrentTerm);
+on('termInput', 'keydown', (event) => {
+  if (event.key === 'Enter') {
     event.preventDefault();
-    addPlayer();
-  });
+    addCurrentTerm();
+  }
+});
 
-  on('toTeams', 'click', () => {
-    if (state.players.length < 2) return;
-    if (state.teamMode === 'random') assignRandomTeams();
-    else ensureManualAssignment();
-    renderTeams();
-    show('teams');
+on('suggestTerm', 'click', () => {
+  const used = new Set(state.allTerms.map((term) => term.toLocaleLowerCase('de')));
+  const current = clean(el('termInput').value).toLocaleLowerCase('de');
+  const options = WORD_POOL.filter((term) => {
+    const key = term.toLocaleLowerCase('de');
+    return !used.has(key) && key !== current;
   });
+  if (!options.length) {
+    setError(el('termError'), 'Keine Vorschläge mehr.');
+    return;
+  }
+  const input = el('termInput');
+  input.blur();
+  input.value = options[Math.floor(Math.random() * options.length)];
+  setError(el('termError'));
+  setSuccess('');
+});
 
-  on('randomTab', 'click', () => setTeamMode('random'));
-  on('manualTab', 'click', () => setTeamMode('manual'));
-  on('shuffleTeams', 'click', () => {
-    assignRandomTeams();
-    renderTeams();
-    vibrate(15);
-  });
+on('startCollectedGame', 'click', prepareGame);
 
-  on('team1Terms', 'input', (event) => {
-    state.termsPerPlayer[0] = Math.round(clamp(event.target.value, 3, 5));
-    syncTermTarget();
-  });
-  on('team2Terms', 'input', (event) => {
-    state.termsPerPlayer[1] = Math.round(clamp(event.target.value, 3, 5));
-    syncTermTarget();
-  });
+on('startRound', 'click', () => {
+  renderTurnReady();
+  show('turnReady');
+});
+on('beginTurn', 'click', startCountdown);
 
-  on('confirmTeams', 'click', () => {
-    if (!validateTeams(true)) return;
-    state.termTarget = computeTermTarget();
-    state.allTerms = [];
-    state.teamTurnIndex = [0,0];
-    if (state.mode === 'random') {
-      prepareGame();
-    } else {
-      renderCollect();
-      show('collect');
-      requestAnimationFrame(() => el('termInput').focus());
-    }
-  });
+on('gotWord', 'click', () => {
+  if (!state.current || !state.pile.length) return;
+  state.pile.shift();
+  state.turnPoints += 1;
+  state.scores[state.activeTeam] += 1;
+  state.roundScores[state.activeTeam] += 1;
+  state.current = null;
+  soundCorrect();
+  vibrate(10);
+  save();
+  if (!state.pile.length) finishRound(true);
+  else nextWord();
+});
 
-  on('addTerm', 'click', addCurrentTerm);
-  on('termInput', 'keydown', (event) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      addCurrentTerm();
-    }
-  });
-  on('suggestTerm', 'click', () => {
-    const used = new Set(state.allTerms.map((term) => term.toLocaleLowerCase('de')));
-    const current = clean(el('termInput').value).toLocaleLowerCase('de');
-    const options = WORD_POOL.filter((term) => {
-      const key = term.toLocaleLowerCase('de');
-      return !used.has(key) && key !== current;
-    });
-    if (!options.length) {
-      setError(el('termError'), 'Keine weiteren Vorschläge verfügbar.');
-      return;
-    }
-    const input = el('termInput');
-    input.blur();
-    input.value = options[Math.floor(Math.random() * options.length)];
-    setError(el('termError'));
-    setSuccess('Vorschlag eingesetzt – übernehmen oder ändern.');
-  });
-  on('startCollectedGame', 'click', prepareGame);
+on('skipWord', 'click', () => {
+  if (!state.pile.length) return;
+  const skipped = state.pile.shift();
+  state.pile.push(skipped);
+  state.current = null;
+  nextWord();
+  vibrate(8);
+});
 
-  on('startRound', 'click', () => {
-    renderTurnReady();
-    show('turnReady');
-  });
-  on('beginTurn', 'click', startCountdown);
+on('nextTurn', 'click', () => {
+  state.activeTeam = 1 - state.activeTeam;
+  renderTurnReady();
+  show('turnReady');
+});
 
-  on('gotWord', 'click', () => {
-    if (!state.current || !state.pile.length) return;
-    state.pile.shift();
-    state.turnPoints += 1;
-    state.scores[state.activeTeam] += 1;
-    state.roundScores[state.activeTeam] += 1;
-    state.current = null;
-    soundCorrect();
-    vibrate(10);
-    save();
-    if (!state.pile.length) finishRound(true);
-    else nextWord();
-  });
+on('nextRound', 'click', () => {
+  if (state.round >= 2) {
+    finishGame();
+    return;
+  }
+  state.round += 1;
+  state.roundScores = [0,0];
+  state.pile = shuffle(state.allTerms);
+  state.activeTeam = 1 - state.activeTeam;
+  state.current = null;
+  renderRoundIntro();
+  show('roundIntro');
+});
 
-  on('skipWord', 'click', () => {
-    if (!state.pile.length) return;
-    const skipped = state.pile.shift();
-    state.pile.push(skipped);
-    state.current = null;
-    nextWord();
-    vibrate(8);
-  });
+on('restartSame', 'click', restartSame);
+on('fullReset', 'click', fullReset);
 
-  on('nextTurn', 'click', () => {
-    state.activeTeam = 1 - state.activeTeam;
-    renderTurnReady();
-    show('turnReady');
-  });
+window.addEventListener('pagehide', () => {
+  clearTimer();
+  clearCountdown();
+});
 
-  on('nextRound', 'click', () => {
-    if (state.round >= 2) {
-      finishGame();
-      return;
-    }
-    state.round += 1;
-    state.roundScores = [0,0];
-    state.pile = shuffle(state.allTerms);
-    state.activeTeam = 1 - state.activeTeam;
-    state.current = null;
-    renderRoundIntro();
-    show('roundIntro');
-  });
-
-  on('restartSame', 'click', restartSame);
-  on('fullReset', 'click', fullReset);
-
-  window.addEventListener('pagehide', () => {
-    clearTimer();
-    clearCountdown();
-  });
-
-  resume();
+resume();
