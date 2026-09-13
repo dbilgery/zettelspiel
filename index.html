@@ -8,13 +8,16 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Zettelspiel</title>
-  <link rel="stylesheet" href="styles.css?v=20260913-2130" />
+  <link rel="stylesheet" href="styles.css?v=20260913-2245" />
 </head>
 <body>
 <div class="app">
   <header class="top">
     <div class="brand">Zettel<span>spiel</span></div>
-    <button class="ghost" id="resetTop" hidden>Neu starten</button>
+    <div class="topActions">
+      <button class="ghost iconGhost" id="soundToggle" type="button" aria-label="Ton ausschalten" title="Ton an/aus">🔊</button>
+      <button class="ghost" id="resetTop" type="button" hidden>Neu starten</button>
+    </div>
   </header>
 
   <main>
@@ -41,7 +44,7 @@
         </div>
 
         <div class="field">
-          <label for="duration">Rundenzeit</label>
+          <label for="duration">Zeit pro Zug</label>
           <select id="duration">
             <option value="30">30 Sekunden</option>
             <option value="45">45 Sekunden</option>
@@ -50,7 +53,7 @@
           </select>
         </div>
 
-        <button class="btn primary" id="setupStart">Spiel einrichten</button>
+        <button class="btn primary" id="setupStart" type="button">Spiel einrichten</button>
       </div>
     </section>
 
@@ -72,7 +75,7 @@
 
         <div class="targetCard" id="targetCard" hidden>
           <div>
-            <strong>Begriffe insgesamt</strong>
+            <strong id="targetTitle">Begriffe insgesamt</strong>
             <div class="hint" id="targetHint">Empfohlen: 18 Begriffe</div>
           </div>
           <div class="targetControl">
@@ -85,7 +88,7 @@
 
         <div class="setupFooter">
           <span class="hint" id="playerSetupHint">Mindestens 2 Spieler benötigt.</span>
-          <button class="btn primary" id="toTeams" disabled>Weiter zu den Teams</button>
+          <button class="btn primary" id="toTeams" type="button" disabled>Weiter zu den Teams</button>
         </div>
       </div>
     </section>
@@ -98,13 +101,13 @@
       </div>
 
       <div class="tabs" role="tablist" aria-label="Art der Teameinteilung">
-        <button class="tab active" id="randomTab" role="tab" aria-selected="true">🎲 Zufällig</button>
-        <button class="tab" id="manualTab" role="tab" aria-selected="false">✋ Manuell</button>
+        <button class="tab active" id="randomTab" type="button" role="tab" aria-selected="true">🎲 Zufällig</button>
+        <button class="tab" id="manualTab" type="button" role="tab" aria-selected="false">✋ Manuell</button>
       </div>
 
       <div class="teamToolbar" id="randomControls">
         <p class="hint">Die Spieler werden möglichst gleichmäßig verteilt.</p>
-        <button class="btn secondary" id="shuffleTeams">Neu auslosen</button>
+        <button class="btn secondary" id="shuffleTeams" type="button">Neu auslosen</button>
       </div>
       <div class="teamToolbar" id="manualControls" hidden>
         <p class="hint"><strong>Ziehen & ablegen:</strong> Bewege einen Spieler in das andere Team. Auf dem Handy gedrückt halten und ziehen.</p>
@@ -114,8 +117,8 @@
       <p class="formError" id="teamError" role="alert" hidden></p>
 
       <div class="actions two">
-        <button class="btn secondary" id="backToPlayers">Zurück</button>
-        <button class="btn primary" id="confirmTeams">Weiter</button>
+        <button class="btn secondary" id="backToPlayers" type="button">Zurück</button>
+        <button class="btn primary" id="confirmTeams" type="button">Weiter</button>
       </div>
     </section>
 
@@ -145,14 +148,14 @@
         <p class="successMessage" id="termSuccess" aria-live="polite" hidden></p>
 
         <div class="collectActions">
-          <button class="btn primary" id="addTerm">Begriff hinzufügen</button>
-          <button class="btn secondary" id="suggestTerm">✨ Vorschlag einfügen</button>
+          <button class="btn primary" id="addTerm" type="button">Begriff hinzufügen</button>
+          <button class="btn secondary" id="suggestTerm" type="button">✨ Vorschlag einfügen</button>
         </div>
       </div>
 
       <div class="actions">
-        <button class="btn secondary" id="passPhone">Handy weitergeben</button>
-        <button class="btn primary" id="startCollectedGame" hidden>Spiel starten</button>
+        <button class="btn secondary" id="passPhone" type="button">Handy weitergeben</button>
+        <button class="btn primary" id="startCollectedGame" type="button" hidden>Spiel starten</button>
       </div>
     </section>
 
@@ -161,71 +164,94 @@
         <div class="bigemoji">🙈</div>
         <h2>Handy weitergeben</h2>
         <p class="lead centered" id="privacyText">Die bisherigen Begriffe sind verborgen.</p>
-        <button class="btn primary" id="continueCollect">Weiter sammeln</button>
+        <button class="btn primary" id="continueCollect" type="button">Weiter sammeln</button>
       </div>
     </section>
 
     <section class="screen" id="roundIntro">
       <div class="center hero compactHero">
         <div class="roundBadge" id="roundBadge">Runde 1 von 3</div>
+        <div class="bigemoji roundEmoji" id="roundEmoji">🗣️</div>
         <h2 id="roundTitle">Erklären</h2>
         <p class="lead centered" id="roundRule"></p>
       </div>
       <div class="card">
+        <div class="roundMeta" id="roundMeta"></div>
         <div class="scoregrid" id="introScores"></div>
         <div class="divider"></div>
         <p class="center muted" id="startsText"></p>
-        <button class="btn primary" id="startRound">Runde starten</button>
+        <button class="btn primary" id="startRound" type="button">Runde starten</button>
       </div>
     </section>
 
     <section class="screen center" id="turnReady">
-      <div class="handoff">
+      <div class="handoff turnHandoff">
         <div class="bigemoji" id="turnEmoji">👉</div>
         <div class="roundBadge" id="turnRoundBadge"></div>
+        <div class="kicker" id="turnTeamLabel">Jetzt dran</div>
         <h2 id="turnTeam"></h2>
-        <div class="personBadge" id="turnPlayer"></div>
+        <div class="personBadge largeBadge" id="turnPlayer"></div>
         <p class="lead centered readyText" id="turnInstruction"></p>
-        <button class="btn primary readyButton" id="beginTurn">Timer starten</button>
+        <button class="btn primary readyButton" id="beginTurn" type="button">3 · 2 · 1 · Los!</button>
+      </div>
+    </section>
+
+    <section class="screen center" id="countdown">
+      <div class="countdownWrap">
+        <div class="roundBadge" id="countdownRound"></div>
+        <div class="countdownTeam" id="countdownTeam"></div>
+        <div class="countdownNumber" id="countdownNumber" aria-live="assertive">3</div>
+        <div class="hint">Bereit machen …</div>
       </div>
     </section>
 
     <section class="screen" id="play">
-      <div class="center">
-        <div class="roundBadge" id="playRound"></div>
-        <div class="personBadge" id="playPlayer"></div>
-        <div class="timer" id="timer">60</div>
+      <div class="playHeader">
+        <div>
+          <div class="roundBadge compactBadge" id="playRound"></div>
+          <div class="personBadge" id="playPlayer"></div>
+        </div>
+        <div class="liveStats">
+          <div><span>Im Zug</span><strong id="liveTurnPoints">0</strong></div>
+          <div><span>Übrig</span><strong id="remainingWords">0</strong></div>
+        </div>
       </div>
-      <div class="wordCard"><div class="word" id="currentWord">Begriff</div></div>
+      <div class="center"><div class="timer" id="timer">60</div></div>
+      <div class="wordCard" id="wordCard"><div class="word" id="currentWord">Begriff</div></div>
       <div class="playActions">
-        <button class="btn bad" id="skipWord">Überspringen</button>
-        <button class="btn good" id="gotWord">Erraten ✓</button>
+        <button class="btn bad" id="skipWord" type="button">Überspringen</button>
+        <button class="btn good" id="gotWord" type="button">Erraten ✓</button>
       </div>
       <p class="hint center actionHint">Übersprungene Begriffe kommen später wieder.</p>
     </section>
 
     <section class="screen" id="turnEnd">
-      <div class="center hero compactHero">
+      <div class="center hero compactHero turnEndHero">
         <div class="bigemoji">⏱️</div>
+        <div class="kicker" id="turnEndTeam"></div>
         <h2>Zeit!</h2>
-        <p class="lead centered"><span id="turnPoints">0</span> Begriffe in diesem Zug.</p>
+        <div class="turnPointsBig"><span id="turnPoints">0</span><small id="turnPointsLabel">Begriffe</small></div>
+        <p class="lead centered" id="nextUpText"></p>
       </div>
       <div class="scoregrid" id="endScores"></div>
-      <div class="actions"><button class="btn primary" id="nextTurn">Weiter</button></div>
+      <div class="actions"><button class="btn primary" id="nextTurn" type="button">Handy weitergeben</button></div>
     </section>
 
     <section class="screen" id="roundEnd">
       <div class="center hero compactHero">
         <div class="bigemoji">✨</div>
+        <div class="kicker">Zwischenstand</div>
         <h2 id="roundEndTitle">Runde geschafft</h2>
         <p class="lead centered" id="roundEndText"></p>
       </div>
+      <div class="roundResult" id="roundResult"></div>
       <div class="scoregrid" id="roundEndScores"></div>
-      <div class="actions"><button class="btn primary" id="nextRound">Nächste Runde</button></div>
+      <p class="center muted roundLeader" id="roundLeader"></p>
+      <div class="actions"><button class="btn primary" id="nextRound" type="button">Nächste Runde</button></div>
     </section>
 
     <section class="screen" id="finish">
-      <div class="center hero compactHero">
+      <div class="center hero compactHero finishHero">
         <div class="confetti">🎉🏆🎉</div>
         <div class="kicker">Spiel beendet</div>
         <div class="winner" id="winnerText"></div>
@@ -233,12 +259,12 @@
       </div>
       <div class="scoregrid" id="finalScores"></div>
       <div class="actions">
-        <button class="btn primary" id="restartSame">Nochmal mit denselben Spielern</button>
-        <button class="btn secondary" id="fullReset">Komplett neu starten</button>
+        <button class="btn primary" id="restartSame" type="button">Nochmal mit denselben Spielern</button>
+        <button class="btn secondary" id="fullReset" type="button">Komplett neu starten</button>
       </div>
     </section>
   </main>
 </div>
-<script src="app.js?v=20260913-2130"></script>
+<script src="app.js?v=20260913-2245"></script>
 </body>
 </html>
