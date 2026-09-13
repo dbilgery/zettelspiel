@@ -1,271 +1,264 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0b0f" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
   <title>Zettelspiel</title>
-  <link rel="stylesheet" href="styles.css?v=20260913-2245" />
+  <link rel="stylesheet" href="styles.css?v=20260913-2355">
 </head>
 <body>
 <div class="app">
-  <header class="top">
-    <div class="brand">Zettel<span>spiel</span></div>
-    <div class="topActions">
-      <button class="ghost iconGhost" id="soundToggle" type="button" aria-label="Ton ausschalten" title="Ton an/aus">🔊</button>
-      <button class="ghost" id="resetTop" type="button" hidden>Neu starten</button>
+  <header class="navBar">
+    <button class="navIcon" id="backButton" type="button" aria-label="Zurück" hidden>‹</button>
+    <div class="navTitle" id="navTitle">Zettelspiel</div>
+    <div class="navActions">
+      <button class="navIcon compact" id="soundToggle" type="button" aria-label="Ton ausschalten">🔊</button>
+      <button class="navText" id="resetTop" type="button" hidden>Neu</button>
     </div>
   </header>
 
   <main>
     <section class="screen active" id="home">
-      <div class="hero">
-        <div class="kicker">Ein Handy · Drei Runden · Null Vorbereitung</div>
-        <h1>Das Zettelspiel.<br>Ohne Zettel.</h1>
-        <p class="lead">Spieler eintragen, Teams bilden und losspielen – mit eigenen oder komplett zufälligen Begriffen.</p>
+      <div class="largeTitle">
+        <span class="eyebrow">Partyspiel für ein Handy</span>
+        <h1>Zettelspiel</h1>
+        <p>Drei Runden. Dieselben Begriffe. Immer weniger Hinweise.</p>
       </div>
 
-      <div class="card stack">
-        <div class="field">
-          <label>Spielmodus</label>
-          <div class="modeGrid" id="modeGrid" role="radiogroup" aria-label="Spielmodus">
-            <button class="modeCard active" type="button" data-mode="own" role="radio" aria-checked="true">
-              <span class="modeIcon">✍️</span>
-              <span><strong>Eigene Begriffe</strong><small>Gemeinsam sammeln. Jeder trägt so viel oder wenig bei, wie ihm einfällt.</small></span>
-            </button>
-            <button class="modeCard" type="button" data-mode="random" role="radio" aria-checked="false">
-              <span class="modeIcon">🎲</span>
-              <span><strong>Zufällige Begriffe</strong><small>Die App wählt alle Begriffe. Niemand kennt sie vor dem Spiel.</small></span>
-            </button>
-          </div>
+      <div class="group">
+        <div class="groupLabel">Spielmodus</div>
+        <div class="segmented" id="modeControl" role="radiogroup" aria-label="Spielmodus">
+          <button type="button" data-mode="own" class="segment active" role="radio" aria-checked="true">
+            <span>Eigene</span>
+          </button>
+          <button type="button" data-mode="random" class="segment" role="radio" aria-checked="false">
+            <span>Zufällig</span>
+          </button>
         </div>
+        <p class="footnote" id="modeDescription">Ihr sammelt gemeinsam eigene Begriffe. Niemand muss eine feste Anzahl beitragen.</p>
+      </div>
 
-        <div class="field">
-          <label for="duration">Zeit pro Zug</label>
+      <div class="listCard">
+        <label class="settingsRow" for="duration">
+          <span>
+            <strong>Zeit pro Zug</strong>
+            <small>Wie lange eine Person erklärt</small>
+          </span>
           <select id="duration">
-            <option value="30">30 Sekunden</option>
-            <option value="45">45 Sekunden</option>
-            <option value="60" selected>60 Sekunden</option>
-            <option value="90">90 Sekunden</option>
+            <option value="30">30 Sek.</option>
+            <option value="45">45 Sek.</option>
+            <option value="60" selected>60 Sek.</option>
+            <option value="90">90 Sek.</option>
           </select>
-        </div>
+        </label>
+      </div>
 
-        <button class="btn primary" id="setupStart" type="button">Spiel einrichten</button>
+      <button class="primaryButton" id="setupStart" type="button">Spiel einrichten</button>
+
+      <div class="howItWorks">
+        <div><span>1</span><p><strong>Erklären</strong><small>Frei umschreiben</small></p></div>
+        <div><span>2</span><p><strong>Ein Wort</strong><small>Nur ein Hinweiswort</small></p></div>
+        <div><span>3</span><p><strong>Pantomime</strong><small>Nur darstellen</small></p></div>
       </div>
     </section>
 
     <section class="screen" id="players">
-      <div class="sectionHead">
-        <div class="step">1 von 2</div>
+      <div class="pageHeader">
+        <span class="eyebrow">Schritt 1 von 2</span>
         <h2>Wer spielt mit?</h2>
-        <p class="lead">Tragt alle Spieler ein. Danach werden die Teams gebildet.</p>
+        <p>Tragt alle Spielernamen ein.</p>
       </div>
 
-      <div class="card stack">
-        <form class="playerEntry" id="playerForm" novalidate>
-          <label class="srOnly" for="newPlayer">Spielername</label>
-          <input id="newPlayer" placeholder="Name eingeben" maxlength="24" autocomplete="off" enterkeyhint="done" />
-          <button class="btn small primary" type="submit">Hinzufügen</button>
-        </form>
-        <p class="formError" id="playerError" role="alert" hidden></p>
-        <div class="playerList" id="playerList"></div>
+      <form class="addPlayerBar" id="playerForm" novalidate>
+        <input id="newPlayer" type="text" placeholder="Name" maxlength="24" autocomplete="off" enterkeyhint="done">
+        <button type="submit">Hinzufügen</button>
+      </form>
+      <p class="inlineError" id="playerError" hidden></p>
 
-        <div class="targetCard" id="targetCard" hidden>
-          <div>
-            <strong id="targetTitle">Begriffe insgesamt</strong>
-            <div class="hint" id="targetHint">Empfohlen: 18 Begriffe</div>
-          </div>
-          <div class="targetControl">
-            <button type="button" class="stepper" id="targetMinus" aria-label="Weniger Begriffe">−</button>
-            <input id="termTarget" type="number" inputmode="numeric" min="6" max="80" value="6" aria-label="Anzahl Begriffe insgesamt" />
-            <button type="button" class="stepper" id="targetPlus" aria-label="Mehr Begriffe">+</button>
-          </div>
-          <button class="textButton" type="button" id="useRecommendedTarget">Empfehlung verwenden</button>
-        </div>
+      <div class="listCard playerList" id="playerList"></div>
+      <p class="footnote" id="playerSetupHint">Mindestens 2 Spieler benötigt.</p>
 
-        <div class="setupFooter">
-          <span class="hint" id="playerSetupHint">Mindestens 2 Spieler benötigt.</span>
-          <button class="btn primary" id="toTeams" type="button" disabled>Weiter zu den Teams</button>
-        </div>
-      </div>
+      <button class="primaryButton" id="toTeams" type="button" disabled>Weiter</button>
     </section>
 
     <section class="screen" id="teams">
-      <div class="sectionHead">
-        <div class="step">2 von 2</div>
-        <h2>Teams bilden</h2>
-        <p class="lead">Lasst die Teams auslosen oder stellt sie selbst zusammen.</p>
+      <div class="pageHeader">
+        <span class="eyebrow">Schritt 2 von 2</span>
+        <h2>Teams</h2>
+        <p>Auslosen oder per Drag & Drop anpassen.</p>
       </div>
 
-      <div class="tabs" role="tablist" aria-label="Art der Teameinteilung">
-        <button class="tab active" id="randomTab" type="button" role="tab" aria-selected="true">🎲 Zufällig</button>
-        <button class="tab" id="manualTab" type="button" role="tab" aria-selected="false">✋ Manuell</button>
+      <div class="segmented compactSegmented" role="tablist" aria-label="Teameinteilung">
+        <button class="segment active" id="randomTab" type="button" role="tab" aria-selected="true">Zufällig</button>
+        <button class="segment" id="manualTab" type="button" role="tab" aria-selected="false">Manuell</button>
       </div>
 
-      <div class="teamToolbar" id="randomControls">
-        <p class="hint">Die Spieler werden möglichst gleichmäßig verteilt.</p>
-        <button class="btn secondary" id="shuffleTeams" type="button">Neu auslosen</button>
-      </div>
-      <div class="teamToolbar" id="manualControls" hidden>
-        <p class="hint"><strong>Ziehen & ablegen:</strong> Bewege einen Spieler in das andere Team. Auf dem Handy gedrückt halten und ziehen.</p>
+      <button class="secondaryButton smallButton" id="shuffleTeams" type="button">Neu auslosen</button>
+
+      <div class="teamGrid" id="teamColumns"></div>
+      <p class="inlineError" id="teamError" hidden></p>
+
+      <div class="sectionLabel">Begriffe pro Spieler</div>
+      <div class="termsSettings">
+        <div class="teamTermCard">
+          <div class="termCardTop">
+            <div>
+              <strong>Team 1</strong>
+              <small id="team1PlayerCount">0 Spieler</small>
+            </div>
+            <span class="termValue" id="team1TermsValue">3</span>
+          </div>
+          <input id="team1Terms" type="range" min="3" max="5" step="1" value="3" aria-label="Begriffe pro Spieler in Team 1">
+          <div class="rangeLabels"><span>3</span><span>4</span><span>5</span></div>
+        </div>
+
+        <div class="teamTermCard">
+          <div class="termCardTop">
+            <div>
+              <strong>Team 2</strong>
+              <small id="team2PlayerCount">0 Spieler</small>
+            </div>
+            <span class="termValue" id="team2TermsValue">3</span>
+          </div>
+          <input id="team2Terms" type="range" min="3" max="5" step="1" value="3" aria-label="Begriffe pro Spieler in Team 2">
+          <div class="rangeLabels"><span>3</span><span>4</span><span>5</span></div>
+        </div>
       </div>
 
-      <div class="teamColumns" id="teamColumns" aria-live="polite"></div>
-      <p class="formError" id="teamError" role="alert" hidden></p>
-
-      <div class="actions two">
-        <button class="btn secondary" id="backToPlayers" type="button">Zurück</button>
-        <button class="btn primary" id="confirmTeams" type="button">Weiter</button>
+      <div class="totalCard">
+        <div>
+          <span>Wortpool</span>
+          <small id="termCalculation">–</small>
+        </div>
+        <strong id="termTotal">0</strong>
       </div>
+
+      <button class="primaryButton" id="confirmTeams" type="button">Weiter</button>
     </section>
 
     <section class="screen" id="collect">
-      <div class="sectionHead">
-        <div class="step">Begriffe sammeln</div>
-        <h2>Gemeinsamer Wortpool</h2>
-        <p class="lead">Jeder kann so viele Begriffe beitragen, wie ihm einfallen. Es wird nicht gespeichert, wer welchen Begriff eingetragen hat.</p>
+      <div class="pageHeader">
+        <span class="eyebrow">Gemeinsamer Wortpool</span>
+        <h2>Begriffe sammeln</h2>
+        <p>Jeder kann beliebig viele Begriffe hinzufügen. Es wird nicht gespeichert, wer was eingegeben hat.</p>
       </div>
 
-      <div class="poolProgress">
-        <div class="poolProgressTop">
+      <div class="progressCard">
+        <div class="progressTop">
           <strong id="poolCount">0 von 18</strong>
-          <span class="hint" id="poolRemaining">Noch 18 fehlen</span>
+          <span id="poolRemaining">Noch 18 fehlen</span>
         </div>
-        <div class="progressTrack"><div class="progressFill" id="progressFill"></div></div>
+        <div class="progressTrack"><div id="progressFill"></div></div>
       </div>
 
-      <div class="card stack">
-        <div class="field">
-          <label for="termInput">Begriff</label>
-          <input id="termInput" placeholder="z. B. Eiffelturm" maxlength="50" autocomplete="off" enterkeyhint="done" />
-          <div class="hint">Ein Begriff nach dem anderen. Namen, Orte, Gegenstände, Figuren – alles ist erlaubt.</div>
-        </div>
-
-        <p class="formError" id="termError" role="alert" hidden></p>
-        <p class="successMessage" id="termSuccess" aria-live="polite" hidden></p>
-
-        <div class="collectActions">
-          <button class="btn primary" id="addTerm" type="button">Begriff hinzufügen</button>
-          <button class="btn secondary" id="suggestTerm" type="button">✨ Vorschlag einfügen</button>
-        </div>
+      <div class="inputCard">
+        <label for="termInput">Neuer Begriff</label>
+        <input id="termInput" type="text" maxlength="50" placeholder="z. B. Eiffelturm" autocomplete="off" enterkeyhint="done">
+        <p class="inlineError" id="termError" hidden></p>
+        <p class="inlineSuccess" id="termSuccess" hidden></p>
+        <button class="primaryButton inset" id="addTerm" type="button">Hinzufügen</button>
+        <button class="secondaryButton inset" id="suggestTerm" type="button">✨ Vorschlag einfügen</button>
       </div>
 
-      <div class="actions">
-        <button class="btn secondary" id="passPhone" type="button">Handy weitergeben</button>
-        <button class="btn primary" id="startCollectedGame" type="button" hidden>Spiel starten</button>
-      </div>
+      <button class="secondaryButton" id="passPhone" type="button">Handy weitergeben</button>
+      <button class="primaryButton" id="startCollectedGame" type="button" hidden>Spiel starten</button>
     </section>
 
-    <section class="screen center" id="privacy">
-      <div class="handoff">
-        <div class="bigemoji">🙈</div>
-        <h2>Handy weitergeben</h2>
-        <p class="lead centered" id="privacyText">Die bisherigen Begriffe sind verborgen.</p>
-        <button class="btn primary" id="continueCollect" type="button">Weiter sammeln</button>
-      </div>
+    <section class="screen centeredScreen" id="privacy">
+      <div class="handoffIcon">🙈</div>
+      <h2>Handy weitergeben</h2>
+      <p id="privacyText">Die bisherigen Begriffe sind verborgen.</p>
+      <button class="primaryButton" id="continueCollect" type="button">Weiter sammeln</button>
     </section>
 
     <section class="screen" id="roundIntro">
-      <div class="center hero compactHero">
-        <div class="roundBadge" id="roundBadge">Runde 1 von 3</div>
-        <div class="bigemoji roundEmoji" id="roundEmoji">🗣️</div>
+      <div class="roundHero">
+        <div class="roundNumber" id="roundBadge">Runde 1 von 3</div>
+        <div class="roundEmoji" id="roundEmoji">🗣️</div>
         <h2 id="roundTitle">Erklären</h2>
-        <p class="lead centered" id="roundRule"></p>
+        <p id="roundRule"></p>
       </div>
-      <div class="card">
-        <div class="roundMeta" id="roundMeta"></div>
-        <div class="scoregrid" id="introScores"></div>
-        <div class="divider"></div>
-        <p class="center muted" id="startsText"></p>
-        <button class="btn primary" id="startRound" type="button">Runde starten</button>
-      </div>
+
+      <div class="listCard scoreList" id="introScores"></div>
+      <p class="centerNote" id="startsText"></p>
+      <button class="primaryButton" id="startRound" type="button">Runde starten</button>
     </section>
 
-    <section class="screen center" id="turnReady">
-      <div class="handoff turnHandoff">
-        <div class="bigemoji" id="turnEmoji">👉</div>
-        <div class="roundBadge" id="turnRoundBadge"></div>
-        <div class="kicker" id="turnTeamLabel">Jetzt dran</div>
-        <h2 id="turnTeam"></h2>
-        <div class="personBadge largeBadge" id="turnPlayer"></div>
-        <p class="lead centered readyText" id="turnInstruction"></p>
-        <button class="btn primary readyButton" id="beginTurn" type="button">3 · 2 · 1 · Los!</button>
-      </div>
+    <section class="screen centeredScreen" id="turnReady">
+      <div class="roundPill" id="turnRoundBadge">Runde 1</div>
+      <div class="turnEmoji" id="turnEmoji">🗣️</div>
+      <span class="eyebrow">Jetzt dran</span>
+      <h2 id="turnTeam">Team 1</h2>
+      <div class="playerPill" id="turnPlayer">Spieler</div>
+      <p class="readyInstruction" id="turnInstruction"></p>
+      <button class="primaryButton" id="beginTurn" type="button">Start</button>
     </section>
 
-    <section class="screen center" id="countdown">
-      <div class="countdownWrap">
-        <div class="roundBadge" id="countdownRound"></div>
-        <div class="countdownTeam" id="countdownTeam"></div>
-        <div class="countdownNumber" id="countdownNumber" aria-live="assertive">3</div>
-        <div class="hint">Bereit machen …</div>
-      </div>
+    <section class="screen centeredScreen countdownScreen" id="countdown">
+      <div class="roundPill" id="countdownRound"></div>
+      <p id="countdownTeam"></p>
+      <div class="countdownNumber" id="countdownNumber" aria-live="assertive">3</div>
     </section>
 
-    <section class="screen" id="play">
-      <div class="playHeader">
+    <section class="screen gameScreen" id="play">
+      <div class="gameTop">
         <div>
-          <div class="roundBadge compactBadge" id="playRound"></div>
-          <div class="personBadge" id="playPlayer"></div>
+          <div class="roundPill" id="playRound"></div>
+          <div class="playerPill subtle" id="playPlayer"></div>
         </div>
-        <div class="liveStats">
-          <div><span>Im Zug</span><strong id="liveTurnPoints">0</strong></div>
-          <div><span>Übrig</span><strong id="remainingWords">0</strong></div>
-        </div>
+        <div class="timer" id="timer">60</div>
       </div>
-      <div class="center"><div class="timer" id="timer">60</div></div>
-      <div class="wordCard" id="wordCard"><div class="word" id="currentWord">Begriff</div></div>
-      <div class="playActions">
-        <button class="btn bad" id="skipWord" type="button">Überspringen</button>
-        <button class="btn good" id="gotWord" type="button">Erraten ✓</button>
+
+      <div class="wordCard" id="wordCard">
+        <div class="word" id="currentWord">Begriff</div>
       </div>
-      <p class="hint center actionHint">Übersprungene Begriffe kommen später wieder.</p>
+
+      <div class="gameActions">
+        <button class="skipButton" id="skipWord" type="button">Überspringen</button>
+        <button class="correctButton" id="gotWord" type="button">Erraten</button>
+      </div>
     </section>
 
     <section class="screen" id="turnEnd">
-      <div class="center hero compactHero turnEndHero">
-        <div class="bigemoji">⏱️</div>
-        <div class="kicker" id="turnEndTeam"></div>
+      <div class="resultHero">
+        <span class="eyebrow" id="turnEndTeam">Team 1</span>
         <h2>Zeit!</h2>
-        <div class="turnPointsBig"><span id="turnPoints">0</span><small id="turnPointsLabel">Begriffe</small></div>
-        <p class="lead centered" id="nextUpText"></p>
+        <div class="bigResult"><strong id="turnPoints">0</strong><span id="turnPointsLabel">Begriffe</span></div>
+        <p id="nextUpText"></p>
       </div>
-      <div class="scoregrid" id="endScores"></div>
-      <div class="actions"><button class="btn primary" id="nextTurn" type="button">Handy weitergeben</button></div>
+      <div class="listCard scoreList" id="endScores"></div>
+      <button class="primaryButton" id="nextTurn" type="button">Handy weitergeben</button>
     </section>
 
     <section class="screen" id="roundEnd">
-      <div class="center hero compactHero">
-        <div class="bigemoji">✨</div>
-        <div class="kicker">Zwischenstand</div>
+      <div class="resultHero">
+        <span class="eyebrow">Zwischenstand</span>
         <h2 id="roundEndTitle">Runde geschafft</h2>
-        <p class="lead centered" id="roundEndText"></p>
+        <p id="roundEndText"></p>
       </div>
       <div class="roundResult" id="roundResult"></div>
-      <div class="scoregrid" id="roundEndScores"></div>
-      <p class="center muted roundLeader" id="roundLeader"></p>
-      <div class="actions"><button class="btn primary" id="nextRound" type="button">Nächste Runde</button></div>
+      <div class="listCard scoreList" id="roundEndScores"></div>
+      <p class="centerNote" id="roundLeader"></p>
+      <button class="primaryButton" id="nextRound" type="button">Nächste Runde</button>
     </section>
 
     <section class="screen" id="finish">
-      <div class="center hero compactHero finishHero">
-        <div class="confetti">🎉🏆🎉</div>
-        <div class="kicker">Spiel beendet</div>
-        <div class="winner" id="winnerText"></div>
-        <p class="lead centered" id="winnerSub"></p>
+      <div class="finishHero">
+        <div class="trophy">🏆</div>
+        <span class="eyebrow">Spiel beendet</span>
+        <h2 id="winnerText"></h2>
+        <p id="winnerSub"></p>
       </div>
-      <div class="scoregrid" id="finalScores"></div>
-      <div class="actions">
-        <button class="btn primary" id="restartSame" type="button">Nochmal mit denselben Spielern</button>
-        <button class="btn secondary" id="fullReset" type="button">Komplett neu starten</button>
-      </div>
+      <div class="listCard scoreList" id="finalScores"></div>
+      <button class="primaryButton" id="restartSame" type="button">Nochmal spielen</button>
+      <button class="secondaryButton" id="fullReset" type="button">Komplett neu starten</button>
     </section>
   </main>
 </div>
-<script src="app.js?v=20260913-2245"></script>
-<script src="team-target.js?v=20260913-2320"></script>
+<script src="app.js?v=20260913-2355"></script>
+<script src="app-setup.js?v=20260913-2355"></script>
+<script src="app-game.js?v=20260913-2355"></script>
+<script src="app-init.js?v=20260913-2355"></script>
 </body>
 </html>
