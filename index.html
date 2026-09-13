@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f8fafc">
   <meta name="color-scheme" content="light">
   <title>Zettelspiel</title>
-  <link rel="stylesheet" href="styles.css?v=20260913-2800">
+  <link rel="stylesheet" href="styles.css?v=20260913-3100">
   <style>
     .navBar{grid-template-columns:104px minmax(0,1fr) 104px}
     .navIcon.back{grid-column:1;grid-row:1;justify-self:start}
@@ -46,10 +46,10 @@
       <div class="controlGroup">
         <span class="controlLabel">Modus</span>
         <div class="segmented" id="modeControl" role="radiogroup" aria-label="Spielmodus">
-          <button type="button" data-mode="own" class="segment active" role="radio" aria-checked="true">Eigene</button>
-          <button type="button" data-mode="random" class="segment" role="radio" aria-checked="false">Zufällig</button>
+          <button type="button" data-mode="own" class="segment active" role="radio" aria-checked="true">Eigene Wörter</button>
+          <button type="button" data-mode="random" class="segment" role="radio" aria-checked="false">Zufällige Wörter</button>
         </div>
-        <p class="microcopy" id="modeDescription">Eigene Begriffe sammeln.</p>
+        <p class="microcopy" id="modeDescription">Ihr gebt die Wörter selbst ein.</p>
       </div>
       <div class="settingsCard"><label class="settingsRow" for="duration"><span>Zeit pro Zug</span><select id="duration"><option value="30">30 Sek.</option><option value="45">45 Sek.</option><option value="60" selected>60 Sek.</option><option value="90">90 Sek.</option></select></label></div>
       <button class="primaryButton" id="setupStart" type="button">Loslegen</button>
@@ -99,6 +99,6 @@
     <section class="screen" id="finish"><div class="finishHero"><div class="trophy">🏆</div><h2 id="winnerText"></h2><p id="winnerSub"></p></div><div class="scoreList" id="finalScores"></div><button class="primaryButton" id="restartSame" type="button">Nochmal spielen</button><button class="secondaryButton" id="fullReset" type="button">Neu starten</button></section>
   </main>
 </div>
-<script src="app.js?v=20260913-2900"></script><script src="app-setup.js?v=20260913-2900"></script><script src="app-game.js?v=20260913-2900"></script><script src="app-init.js?v=20260913-2900"></script>
+<script src="app.js?v=20260913-3100"></script><script src="app-setup.js?v=20260913-3100"></script><script src="app-game.js?v=20260913-3100"></script><script src="app-init.js?v=20260913-3100"></script>
 </body>
 </html>
