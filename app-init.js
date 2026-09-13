@@ -1,4 +1,7 @@
 'use strict';
+  const obsoletePassButton = el('passPhone');
+  if (obsoletePassButton) obsoletePassButton.remove();
+
   $$('[data-mode]').forEach((button) => button.addEventListener('click', () => setMode(button.dataset.mode)));
   on('soundToggle', 'click', () => {
     state.soundEnabled = !state.soundEnabled;
