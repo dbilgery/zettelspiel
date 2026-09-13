@@ -8,6 +8,13 @@
   <title>Zettelspiel</title>
   <link rel="stylesheet" href="styles.css?v=20260913-2800">
   <style>
+    .navBar{grid-template-columns:104px minmax(0,1fr) 104px}
+    .navIcon.back{grid-column:1;grid-row:1;justify-self:start}
+    .navTitle{grid-column:2;grid-row:1;justify-self:center;white-space:nowrap}
+    .navActions{grid-column:3;grid-row:1;justify-self:end}
+    .navText{min-height:32px;padding:0 9px;border:1px solid var(--border);border-radius:7px;background:rgba(255,255,255,.72);color:var(--muted);font-size:12px;font-weight:600;white-space:nowrap;box-shadow:var(--shadow-sm)}
+    .navText:active{background:var(--surface-soft);color:var(--text-soft)}
+
     .teamModeRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;margin-bottom:14px}
     .teamModeRow .compactSegmented{margin:0}
     .teamModeRow .compactButton{height:42px;white-space:nowrap;padding:0 13px}
@@ -18,7 +25,11 @@
     .termChoice button{height:40px;border:0;border-radius:7px;background:transparent;color:var(--muted);font-size:14px;font-weight:700;transition:background .14s ease,color .14s ease,box-shadow .14s ease}
     .termChoice button.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow-sm)}
     .termChoiceSummary{margin:10px 2px 0;color:var(--muted);font-size:12px;line-height:1.4}
-    @media(max-width:390px){.teamModeRow{grid-template-columns:1fr}.teamModeRow .compactButton{justify-self:end;height:36px}.termChoiceCard{margin-top:18px}}
+    @media(max-width:390px){
+      .navBar{grid-template-columns:96px minmax(0,1fr) 96px}
+      .navText{padding:0 7px;font-size:11.5px}
+      .teamModeRow{grid-template-columns:1fr}.teamModeRow .compactButton{justify-self:end;height:36px}.termChoiceCard{margin-top:18px}
+    }
   </style>
 </head>
 <body>
@@ -26,7 +37,7 @@
   <header class="navBar">
     <button class="navIcon back" id="backButton" type="button" aria-label="Zurück" hidden>‹</button>
     <div class="navTitle" id="navTitle">Zettelspiel</div>
-    <div class="navActions"><button class="navText" id="resetTop" type="button" hidden>Neu</button></div>
+    <div class="navActions"><button class="navText" id="resetTop" type="button" hidden>Neues Spiel</button></div>
   </header>
 
   <main>
