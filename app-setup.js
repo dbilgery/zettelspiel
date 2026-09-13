@@ -131,12 +131,14 @@ function validateTeams(showMessage = true) {
 function renderTermSettings() {
   const value = Math.round(clamp(state.termsPerPlayer[0], 3, 5));
   state.termsPerPlayer = [value, value];
-  const slider = el('termsPerPlayer');
-  if (slider) slider.value = String(value);
-  const label = el('termsPerPlayerValue');
-  if (label) label.textContent = String(value);
+  $$('[data-terms-choice]').forEach((button) => {
+    const active = Number(button.dataset.termsChoice) === value;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-checked', String(active));
+  });
   state.termTarget = Math.min(WORD_POOL.length, state.players.length * value);
-  el('termTotal').textContent = String(state.termTarget);
+  const summary = el('termSummary');
+  if (summary) summary.textContent = `${state.players.length} Spieler · ${state.termTarget} Begriffe insgesamt`;
 }
 
 function movePlayerToTeam(playerId, targetTeam) {
@@ -158,18 +160,15 @@ function bindDragAndDrop() {
       const player = playerById(playerId);
       if (!player) return;
       event.preventDefault();
-
       const ghost = document.createElement('div');
       ghost.className = 'dragGhost';
       ghost.textContent = player.name;
       document.body.appendChild(ghost);
       member.classList.add('dragging');
-
       drag = { pointerId:event.pointerId, playerId, from:Number(member.dataset.from), member, ghost, target:null };
       if (member.setPointerCapture) member.setPointerCapture(event.pointerId);
       positionGhost(event.clientX, event.clientY);
       updateDropTarget(event.clientX, event.clientY);
-
       const move = (e) => {
         if (!drag || e.pointerId !== drag.pointerId) return;
         e.preventDefault();
@@ -184,10 +183,9 @@ function bindDragAndDrop() {
         cleanupDrag();
         if (target !== null && target !== from) movePlayerToTeam(id, target);
       };
-      const cancel = () => cleanupDrag();
       member.addEventListener('pointermove', move);
       member.addEventListener('pointerup', end, { once:true });
-      member.addEventListener('pointercancel', cancel, { once:true });
+      member.addEventListener('pointercancel', () => cleanupDrag(), { once:true });
       drag.move = move;
     });
   });
@@ -204,10 +202,7 @@ function updateDropTarget(x, y) {
   $$('.teamBox').forEach((box) => box.classList.remove('dropTarget'));
   const targetNode = document.elementFromPoint(x, y);
   const box = targetNode && targetNode.closest ? targetNode.closest('.teamBox') : null;
-  if (!box) {
-    drag.target = null;
-    return;
-  }
+  if (!box) { drag.target = null; return; }
   drag.target = Number(box.dataset.team);
   if (drag.target !== drag.from) box.classList.add('dropTarget');
 }
