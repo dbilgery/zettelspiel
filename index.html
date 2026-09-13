@@ -5,81 +5,205 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0b0b0f" />
   <title>Zettelspiel</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 <div class="app">
-  <div class="top"><div class="brand">Zettel<span>spiel</span></div><button class="ghost" id="resetTop" hidden>Neu starten</button></div>
+  <header class="top">
+    <div class="brand">Zettel<span>spiel</span></div>
+    <button class="ghost" id="resetTop" hidden>Neu starten</button>
+  </header>
 
-  <section class="screen active" id="home">
-    <div class="hero"><div class="kicker">Ein Handy · Drei Runden · Null Vorbereitung</div><h1>Das Zettelspiel.<br>Ohne Zettel.</h1><p class="lead">Spieler eintragen, Teams bilden, Begriffe sammeln und direkt losspielen.</p></div>
-    <div class="card stack">
-      <div class="row">
-        <div class="field"><label>Rundenzeit</label><select id="duration"><option value="30">30 Sekunden</option><option value="45">45 Sekunden</option><option value="60" selected>60 Sekunden</option><option value="90">90 Sekunden</option></select></div>
-        <div class="field"><label>Begriffe pro Person</label><select id="perPlayer"><option>2</option><option selected>3</option><option>4</option><option>5</option></select></div>
+  <main>
+    <section class="screen active" id="home">
+      <div class="hero">
+        <div class="kicker">Ein Handy · Drei Runden · Null Vorbereitung</div>
+        <h1>Das Zettelspiel.<br>Ohne Zettel.</h1>
+        <p class="lead">Spieler eintragen, Teams bilden, Begriffe sammeln und direkt losspielen.</p>
       </div>
-      <button class="btn primary" id="setupStart">Spiel einrichten</button>
-    </div>
-  </section>
-
-  <section class="screen" id="players">
-    <h2>Wer spielt mit?</h2><p class="lead">Tragt zuerst alle Spielernamen ein. Danach könnt ihr die Teams auslosen oder selbst zusammenstellen.</p>
-    <div class="card stack">
-      <div class="playerEntry"><input id="newPlayer" placeholder="Name eingeben" maxlength="24" autocomplete="off"><button class="btn small primary" id="addPlayer">Hinzufügen</button></div>
-      <div class="playerList" id="playerList"></div><div class="hint" id="playerSetupHint">Mindestens 2 Spieler benötigt.</div>
-    </div>
-    <div class="card stack" style="margin-top:14px" id="teamSetupCard" hidden>
-      <div class="tabs"><button class="tab active" id="randomTab">🎲 Zufällig</button><button class="tab" id="manualTab">✋ Manuell</button></div>
-      <div id="randomSetup" class="stack">
-        <p class="hint" style="margin:0">Die Spieler werden möglichst gleichmäßig auf zwei Teams verteilt.</p><button class="btn secondary" id="shuffleTeams">Teams auslosen</button>
+      <div class="card stack">
+        <div class="row">
+          <div class="field">
+            <label for="duration">Rundenzeit</label>
+            <select id="duration">
+              <option value="30">30 Sekunden</option>
+              <option value="45">45 Sekunden</option>
+              <option value="60" selected>60 Sekunden</option>
+              <option value="90">90 Sekunden</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="perPlayer">Begriffe pro Person</label>
+            <select id="perPlayer">
+              <option value="2">2</option>
+              <option value="3" selected>3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn primary" id="setupStart">Spiel einrichten</button>
       </div>
-      <div id="manualSetup" class="stack" hidden><p class="hint" style="margin:0">Tippe bei einem Spieler auf den Pfeil, um ihn ins andere Team zu verschieben.</p></div>
-      <div class="row">
-        <div class="field"><label>Team 1</label><input id="team1" value="Team 1" maxlength="24"></div><div class="field"><label>Team 2</label><input id="team2" value="Team 2" maxlength="24"></div>
+    </section>
+
+    <section class="screen" id="players">
+      <div class="sectionHead">
+        <div class="step">1 von 3</div>
+        <h2>Wer spielt mit?</h2>
+        <p class="lead">Tragt alle Spieler ein. Die Teams kommen im nächsten Schritt.</p>
       </div>
-      <div class="teamColumns" id="teamColumns"></div><button class="btn primary" id="confirmTeams" disabled>Teams übernehmen</button>
-    </div>
-  </section>
 
-  <section class="screen" id="collect">
-    <h2>Begriffe sammeln</h2><p class="lead">Eine Person nach der anderen. Nach dem Speichern wird der Bildschirm verdeckt.</p>
-    <div class="card stack">
-      <div><div class="kicker">Jetzt dran</div><div class="personBadge" id="collectPlayerBadge">👤 Spieler</div></div>
-      <div class="field"><label id="termsLabel">Deine Begriffe</label><textarea id="termsInput" placeholder="Einen Begriff pro Zeile"></textarea><div class="hint" id="termHint"></div></div>
-      <button class="btn primary" id="savePlayer">Begriffe speichern</button>
-    </div>
-    <div class="divider"></div><div><strong id="collectedCount">0 Begriffe gesammelt</strong><div class="hint" id="collectProgress"></div></div>
-  </section>
+      <div class="card stack">
+        <form class="playerEntry" id="playerForm" novalidate>
+          <label class="srOnly" for="newPlayer">Spielername</label>
+          <input id="newPlayer" placeholder="Name eingeben" maxlength="24" autocomplete="off" enterkeyhint="done" />
+          <button class="btn small primary" type="submit">Hinzufügen</button>
+        </form>
+        <p class="formError" id="playerError" role="alert" hidden></p>
+        <div class="playerList" id="playerList"></div>
+        <div class="setupFooter">
+          <span class="hint" id="playerSetupHint">Mindestens 2 Spieler benötigt.</span>
+          <button class="btn primary" id="toTeams" disabled>Weiter zu den Teams</button>
+        </div>
+      </div>
+    </section>
 
-  <section class="screen center" id="privacy">
-    <div class="handoff"><div class="bigemoji">🙈</div><h2>Handy weitergeben</h2><p class="lead" style="margin-inline:auto" id="privacyText">Die Begriffe wurden gespeichert und sind verborgen.</p><button class="btn primary" id="nextPlayer">Nächste Person</button></div>
-  </section>
+    <section class="screen" id="teams">
+      <div class="sectionHead">
+        <div class="step">2 von 3</div>
+        <h2>Teams bilden</h2>
+        <p class="lead">Lasst die Teams auslosen oder stellt sie selbst zusammen.</p>
+      </div>
 
-  <section class="screen" id="roundIntro">
-    <div class="center hero" style="padding-bottom:2vh"><div class="roundBadge" id="roundBadge">Runde 1 von 3</div><h2 id="roundTitle">Erklären</h2><p class="lead" id="roundRule" style="margin-inline:auto"></p></div>
-    <div class="card"><div class="scoregrid" id="introScores"></div><div class="divider"></div><p class="center muted" id="startsText"></p><button class="btn primary" id="startRound">Runde starten</button></div>
-  </section>
+      <div class="tabs" role="tablist" aria-label="Art der Teameinteilung">
+        <button class="tab active" id="randomTab" role="tab" aria-selected="true">🎲 Zufällig</button>
+        <button class="tab" id="manualTab" role="tab" aria-selected="false">✋ Manuell</button>
+      </div>
 
-  <section class="screen center" id="turnReady">
-    <div class="handoff"><div class="bigemoji" id="turnEmoji">👉</div><div class="roundBadge" id="turnRoundBadge"></div><h2 id="turnTeam"></h2><div class="personBadge" id="turnPlayer"></div><p class="lead" style="margin:18px auto 0" id="turnInstruction"></p><button class="btn primary" style="margin-top:22px" id="beginTurn">Timer starten</button></div>
-  </section>
+      <div class="teamToolbar" id="randomControls">
+        <p class="hint">Die Spieler werden möglichst gleichmäßig verteilt.</p>
+        <button class="btn secondary" id="shuffleTeams">Neu auslosen</button>
+      </div>
+      <div class="teamToolbar" id="manualControls" hidden>
+        <p class="hint"><strong>Ziehen & ablegen:</strong> Bewege einen Spieler in das andere Team. Auf dem Handy einfach gedrückt halten und ziehen.</p>
+      </div>
 
-  <section class="screen" id="play">
-    <div class="center"><div class="roundBadge" id="playRound"></div><div class="personBadge" id="playPlayer"></div><div class="timer" id="timer">60</div></div>
-    <div class="wordCard"><div class="word" id="currentWord">Begriff</div></div><div class="playActions"><button class="btn bad" id="skipWord">Überspringen</button><button class="btn good" id="gotWord">Erraten ✓</button></div><p class="hint center" style="margin-top:12px">Übersprungene Begriffe kommen später wieder.</p>
-  </section>
+      <div class="teamColumns" id="teamColumns" aria-live="polite"></div>
+      <p class="formError" id="teamError" role="alert" hidden></p>
 
-  <section class="screen" id="turnEnd">
-    <div class="center hero" style="padding-bottom:2vh"><div class="bigemoji">⏱️</div><h2>Zeit!</h2><p class="lead" style="margin-inline:auto"><span id="turnPoints">0</span> Begriffe in diesem Zug.</p></div><div class="scoregrid" id="endScores"></div><div class="actions"><button class="btn primary" id="nextTurn">Weiter</button></div>
-  </section>
+      <div class="actions two">
+        <button class="btn secondary" id="backToPlayers">Zurück</button>
+        <button class="btn primary" id="confirmTeams">Teams übernehmen</button>
+      </div>
+    </section>
 
-  <section class="screen" id="roundEnd">
-    <div class="center hero" style="padding-bottom:2vh"><div class="bigemoji">✨</div><h2 id="roundEndTitle">Runde geschafft</h2><p class="lead" style="margin-inline:auto" id="roundEndText"></p></div><div class="scoregrid" id="roundEndScores"></div><div class="actions"><button class="btn primary" id="nextRound">Nächste Runde</button></div>
-  </section>
+    <section class="screen" id="collect">
+      <div class="sectionHead">
+        <div class="step">3 von 3</div>
+        <h2>Begriffe sammeln</h2>
+        <p class="lead">Eine Person nach der anderen. Nach dem Speichern wird der Bildschirm verdeckt.</p>
+      </div>
+      <div class="card stack">
+        <div>
+          <div class="kicker">Jetzt dran</div>
+          <div class="personBadge" id="collectPlayerBadge">👤 Spieler</div>
+        </div>
+        <div class="field">
+          <label id="termsLabel" for="termsInput">Deine Begriffe</label>
+          <textarea id="termsInput" placeholder="Einen Begriff pro Zeile" autocapitalize="sentences"></textarea>
+          <div class="hint" id="termHint"></div>
+        </div>
+        <p class="formError" id="termError" role="alert" hidden></p>
+        <button class="btn primary" id="savePlayer">Begriffe speichern</button>
+      </div>
+      <div class="progressBlock">
+        <strong id="collectedCount">0 Begriffe gesammelt</strong>
+        <div class="hint" id="collectProgress"></div>
+      </div>
+    </section>
 
-  <section class="screen" id="finish">
-    <div class="center hero" style="padding-bottom:2vh"><div class="confetti">🎉🏆🎉</div><div class="kicker">Spiel beendet</div><div class="winner" id="winnerText"></div><p class="lead" style="margin-inline:auto" id="winnerSub"></p></div><div class="scoregrid" id="finalScores"></div><div class="actions"><button class="btn primary" id="restartSame">Nochmal mit denselben Spielern</button><button class="btn secondary" id="fullReset">Komplett neu starten</button></div>
-  </section>
+    <section class="screen center" id="privacy">
+      <div class="handoff">
+        <div class="bigemoji">🙈</div>
+        <h2>Handy weitergeben</h2>
+        <p class="lead" id="privacyText">Die Begriffe wurden gespeichert und sind verborgen.</p>
+        <button class="btn primary" id="nextPlayer">Nächste Person</button>
+      </div>
+    </section>
+
+    <section class="screen" id="roundIntro">
+      <div class="center hero compactHero">
+        <div class="roundBadge" id="roundBadge">Runde 1 von 3</div>
+        <h2 id="roundTitle">Erklären</h2>
+        <p class="lead centered" id="roundRule"></p>
+      </div>
+      <div class="card">
+        <div class="scoregrid" id="introScores"></div>
+        <div class="divider"></div>
+        <p class="center muted" id="startsText"></p>
+        <button class="btn primary" id="startRound">Runde starten</button>
+      </div>
+    </section>
+
+    <section class="screen center" id="turnReady">
+      <div class="handoff">
+        <div class="bigemoji" id="turnEmoji">👉</div>
+        <div class="roundBadge" id="turnRoundBadge"></div>
+        <h2 id="turnTeam"></h2>
+        <div class="personBadge" id="turnPlayer"></div>
+        <p class="lead centered readyText" id="turnInstruction"></p>
+        <button class="btn primary readyButton" id="beginTurn">Timer starten</button>
+      </div>
+    </section>
+
+    <section class="screen" id="play">
+      <div class="center">
+        <div class="roundBadge" id="playRound"></div>
+        <div class="personBadge" id="playPlayer"></div>
+        <div class="timer" id="timer">60</div>
+      </div>
+      <div class="wordCard"><div class="word" id="currentWord">Begriff</div></div>
+      <div class="playActions">
+        <button class="btn bad" id="skipWord">Überspringen</button>
+        <button class="btn good" id="gotWord">Erraten ✓</button>
+      </div>
+      <p class="hint center actionHint">Übersprungene Begriffe kommen später wieder.</p>
+    </section>
+
+    <section class="screen" id="turnEnd">
+      <div class="center hero compactHero">
+        <div class="bigemoji">⏱️</div>
+        <h2>Zeit!</h2>
+        <p class="lead centered"><span id="turnPoints">0</span> Begriffe in diesem Zug.</p>
+      </div>
+      <div class="scoregrid" id="endScores"></div>
+      <div class="actions"><button class="btn primary" id="nextTurn">Weiter</button></div>
+    </section>
+
+    <section class="screen" id="roundEnd">
+      <div class="center hero compactHero">
+        <div class="bigemoji">✨</div>
+        <h2 id="roundEndTitle">Runde geschafft</h2>
+        <p class="lead centered" id="roundEndText"></p>
+      </div>
+      <div class="scoregrid" id="roundEndScores"></div>
+      <div class="actions"><button class="btn primary" id="nextRound">Nächste Runde</button></div>
+    </section>
+
+    <section class="screen" id="finish">
+      <div class="center hero compactHero">
+        <div class="confetti">🎉🏆🎉</div>
+        <div class="kicker">Spiel beendet</div>
+        <div class="winner" id="winnerText"></div>
+        <p class="lead centered" id="winnerSub"></p>
+      </div>
+      <div class="scoregrid" id="finalScores"></div>
+      <div class="actions">
+        <button class="btn primary" id="restartSame">Nochmal mit denselben Spielern</button>
+        <button class="btn secondary" id="fullReset">Komplett neu starten</button>
+      </div>
+    </section>
+  </main>
 </div>
 <script src="app.js"></script>
 </body>
