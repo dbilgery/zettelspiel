@@ -8,15 +8,6 @@ $$('[data-mode]').forEach((button) => button.addEventListener('click', () => {
   el('modeDescription').textContent = state.mode === 'own' ? 'Eigene Begriffe gemeinsam sammeln.' : 'Begriffe automatisch wählen.';
 }));
 
-on('soundToggle', 'click', () => {
-  state.soundEnabled = !state.soundEnabled;
-  if (state.soundEnabled) {
-    ensureAudio();
-    tone(760, .06, .025);
-  }
-  save();
-});
-
 on('resetTop', 'click', () => {
   if (confirm('Spiel neu starten?')) fullReset();
 });
@@ -24,11 +15,9 @@ on('backButton', 'click', goBack);
 
 on('setupStart', 'click', () => {
   const mode = state.mode;
-  const soundEnabled = state.soundEnabled;
   const duration = +el('duration').value;
   state = fresh();
   state.mode = mode;
-  state.soundEnabled = soundEnabled;
   state.duration = duration;
   state.started = true;
   renderPlayers();
@@ -68,9 +57,8 @@ on('confirmTeams', 'click', () => {
   state.termTarget = computeTermTarget();
   state.allTerms = [];
   state.teamTurnIndex = [0,0];
-  if (state.mode === 'random') {
-    prepareGame();
-  } else {
+  if (state.mode === 'random') prepareGame();
+  else {
     renderCollect();
     show('collect');
     requestAnimationFrame(() => el('termInput').focus());
@@ -104,7 +92,6 @@ on('suggestTerm', 'click', () => {
 });
 
 on('startCollectedGame', 'click', prepareGame);
-
 on('startRound', 'click', () => {
   renderTurnReady();
   show('turnReady');
@@ -118,7 +105,6 @@ on('gotWord', 'click', () => {
   state.scores[state.activeTeam] += 1;
   state.roundScores[state.activeTeam] += 1;
   state.current = null;
-  soundCorrect();
   vibrate(10);
   save();
   if (!state.pile.length) finishRound(true);
