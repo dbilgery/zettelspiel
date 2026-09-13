@@ -1,8 +1,5 @@
 'use strict';
 
-const sharedTermsLayout = el('termsPerPlayer') && el('termsPerPlayer').closest('.termsSettings');
-if (sharedTermsLayout) sharedTermsLayout.style.gridTemplateColumns = '1fr';
-
 $$('[data-mode]').forEach((button) => button.addEventListener('click', () => {
   setMode(button.dataset.mode);
   el('modeDescription').textContent = state.mode === 'own' ? 'Eigene Begriffe gemeinsam sammeln.' : 'Begriffe automatisch wählen.';
@@ -46,11 +43,12 @@ on('shuffleTeams', 'click', () => {
   vibrate(15);
 });
 
-on('termsPerPlayer', 'input', (event) => {
-  const value = Math.round(clamp(event.target.value, 3, 5));
+$$('[data-terms-choice]').forEach((button) => button.addEventListener('click', () => {
+  const value = Math.round(clamp(button.dataset.termsChoice, 3, 5));
   state.termsPerPlayer = [value, value];
   syncTermTarget();
-});
+  vibrate(8);
+}));
 
 on('confirmTeams', 'click', () => {
   if (!validateTeams(true)) return;
