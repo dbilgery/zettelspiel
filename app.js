@@ -4,8 +4,7 @@
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const screens = $$('.screen');
-  const STORAGE_KEY = 'zettelspiel-state-v2';
-  const LEGACY_KEY = 'zettelspiel-state';
+  const STORAGE_KEY = 'zettelspiel-state-v3';
 
   const rounds = [
     { title: 'Erklären', rule: 'Erkläre den Begriff, ohne ihn selbst oder Teile davon zu sagen.', emoji: '🗣️' },
@@ -13,15 +12,47 @@
     { title: 'Pantomime', rule: 'Nur darstellen. Nicht sprechen, keine Geräusche und keine Buchstaben in die Luft schreiben.', emoji: '🎭' }
   ];
 
+  const WORD_POOL = [
+    'Eiffelturm','Pinguin','Zahnbürste','Harry Potter','Pizza','Feuerwehr','Kaktus','Titanic','Schneemann','Batman',
+    'Staubsauger','Mount Everest','Spaghetti','Darth Vader','Waschmaschine','Giraffe','Disco','Schloss','Superman','Popcorn',
+    'Känguru','Mona Lisa','Toaster','Sherlock Holmes','Vulkan','Klopapier','Astronaut','Las Vegas','Sonnenbrille','Dracula',
+    'Bagger','Meerjungfrau','Hamburger','Pyramide','Roboter','Krokodil','Fallschirm','Mozart','Mikrowelle','Cowboy',
+    'Nutella','Freiheitsstatue','Detektiv','Skateboard','Dinosaurier','James Bond','Kaffeemaschine','Zirkus','Eisberg','Wikinger',
+    'Spongebob','Luftballon','Krankenhaus','Banane','Tarzan','Kühlschrank','Sushi','Leuchtturm','Piraten','Hamster',
+    'Basketball','Marilyn Monroe','Kopfhörer','Safari','Schornsteinfeger','Donut','Ritter','Taxi','Kamel','Avatar',
+    'Schaukel','Albert Einstein','Pommes','U-Boot','Hexe','Kino','Papagei','Schokolade','Napoleon','Rolltreppe',
+    'Gummibärchen','Polizei','Yoda','Koffer','Wasserfall','Mickey Mouse','Tennis','Föhn','Burg','Elvis Presley',
+    'Regenschirm','Zebra','Rakete','Cappuccino','Spiderman','Kettensäge','London','Clown','Kokosnuss','Formel 1',
+    'Barbie','Panda','Bohrmaschine','Nordpol','Fußball','Charlie Chaplin','Laptop','Hai','Achterbahn','Hotdog',
+    'Aladdin','Schnecke','Flughafen','Kerze','Hulk','Biene','Camping','Käsekuchen','Indianer','Fernbedienung',
+    'King Kong','Taschenlampe','Känguru','Oper','Messer','Simba','Wüste','Erdbeere','Gefängnis','Eule',
+    'Motorrad','Mumie','Brezel','Tower Bridge','Schildkröte','Indiana Jones','Wecker','Sauna','Gorilla','Ketchup',
+    'Zauberer','Traktor','Chinesische Mauer','Piratenschiff','Gitarre','Cinderella','Delfin','Bowling','Kaffee','Schneewittchen',
+    'Hubschrauber','Pferd','Venedig','Einstein','Käse','Minions','Rucksack','Wolkenkratzer','Löwe','Trompete',
+    'Schach','Einhorn','Tankstelle','Pfannkuchen','Robin Hood','Kamera','Moskito','Hochzeit','Ananas','Ghostbusters',
+    'Surfbrett','Elefant','Big Ben','Lasagne','Ninja','Klimaanlage','Koala','Casino','Croissant','Popeye',
+    'Schlüssel','Iglu','Flamingo','Supermarkt','Cupcake','Homer Simpson','Teleskop','Krake','Brandenburger Tor','Kaugummi',
+    'Karate','Pinocchio','Kanu','Eisbär','McDonalds','Zauberstab','Schiedsrichter','Matratze','Rom','Erdmännchen',
+    'Waffel','Shrek','Roller','Waschbär','Autobahn','Vampir','Schraubenzieher','Mallorca','Pistazie','Rockstar',
+    'Kran','Wal','Museum','Muffin','Hänsel und Gretel','Mikrofon','Schmetterling','Berlin','Gulasch','Joker',
+    'Snowboard','Lama','Kathedrale','Avocado','Biene Maja','Drohne','Kinoabend','Pfau','Kuchen','Gladiator',
+    'Tretboot','Nashorn','Opernhaus','Pommesgabel','Peter Pan','Ventilator','Frosch','Bahnhof','Mango','Terminator',
+    'Kletterwand','Otter','Sagrada Familia','Milchshake','Pippi Langstrumpf','Staubsaugerroboter','Seehund','Festival','Taco','Rocky',
+    'Hängematte','Rentier','Colosseum','Smoothie','Bugs Bunny','Werkzeugkoffer','Pelikane','Bibliothek','Burrito','Rambo',
+    'Trampolin','Faultier','Niagarafälle','Käsebrot','Asterix','Kopierer','Gans','Zoo','Kartoffel','Mr. Bean',
+    'E-Scooter','Orang-Utan','Hollywood','Müsli','Obelix','Wasserkocher','Huhn','Schwimmbad','Nudeln','Forrest Gump'
+  ];
+
   const fresh = () => ({
     duration: 60,
-    perPlayer: 3,
+    mode: 'own',
     players: [],
     teams: ['Team 1', 'Team 2'],
     teamMembers: [[], []],
     teamMode: 'random',
     teamTurnIndex: [0, 0],
-    collectIndex: 0,
+    termTarget: 6,
+    targetLocked: false,
     allTerms: [],
     round: 0,
     activeTeam: 0,
@@ -40,40 +71,53 @@
   let drag = null;
 
   function makeId() {
-    return window.crypto?.randomUUID?.() || `p-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+    return `p-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  }
+
+  function cleanName(value) {
+    return String(value || '').trim().replace(/\s+/g, ' ');
+  }
+
+  function cleanTerm(value) {
+    return String(value || '').trim().replace(/\s+/g, ' ');
   }
 
   function normalize(input) {
-    const base = fresh();
-    const s = { ...base, ...(input || {}) };
-
+    const s = { ...fresh(), ...(input || {}) };
     s.duration = [30, 45, 60, 90].includes(+s.duration) ? +s.duration : 60;
-    s.perPlayer = [2, 3, 4, 5].includes(+s.perPlayer) ? +s.perPlayer : 3;
-    s.teams = ['Team 1', 'Team 2'];
+    s.mode = s.mode === 'random' ? 'random' : 'own';
     s.teamMode = s.teamMode === 'manual' ? 'manual' : 'random';
+    s.teams = ['Team 1', 'Team 2'];
+    s.termTarget = Math.max(6, Math.min(80, +s.termTarget || 6));
+    s.targetLocked = !!s.targetLocked;
 
     if (!Array.isArray(s.players)) s.players = [];
     s.players = s.players
-      .map((p) => typeof p === 'string' ? { id: makeId(), name: cleanName(p) } : { id: p?.id || makeId(), name: cleanName(p?.name || '') })
+      .map((p) => typeof p === 'string'
+        ? { id: makeId(), name: cleanName(p) }
+        : { id: p && p.id ? p.id : makeId(), name: cleanName(p && p.name ? p.name : '') })
       .filter((p) => p.name);
 
     if (!Array.isArray(s.teamMembers) || s.teamMembers.length !== 2) s.teamMembers = [[], []];
     const validIds = new Set(s.players.map((p) => p.id));
     const used = new Set();
     s.teamMembers = s.teamMembers.map((team) => Array.isArray(team)
-      ? team.filter((id) => validIds.has(id) && !used.has(id) && used.add(id))
+      ? team.filter((id) => {
+          if (!validIds.has(id) || used.has(id)) return false;
+          used.add(id);
+          return true;
+        })
       : []
     );
 
     if (!Array.isArray(s.teamTurnIndex) || s.teamTurnIndex.length !== 2) s.teamTurnIndex = [0, 0];
-    s.teamTurnIndex = s.teamTurnIndex.map((n) => Number.isFinite(+n) ? Math.max(0, +n) : 0);
-
     if (!Array.isArray(s.allTerms)) s.allTerms = [];
+    s.allTerms = s.allTerms.map(cleanTerm).filter(Boolean);
     if (!Array.isArray(s.pile)) s.pile = [];
     if (!Array.isArray(s.scores) || s.scores.length !== 2) s.scores = [0, 0];
     if (!Array.isArray(s.roundScores) || s.roundScores.length !== 2) s.roundScores = [0, 0];
 
-    s.collectIndex = Math.max(0, Math.min(+s.collectIndex || 0, s.players.length));
     s.round = Math.max(0, Math.min(+s.round || 0, 2));
     s.activeTeam = +s.activeTeam === 1 ? 1 : 0;
     s.phase = typeof s.phase === 'string' ? s.phase : 'home';
@@ -82,12 +126,11 @@
 
   function loadState() {
     try {
-      const current = localStorage.getItem(STORAGE_KEY);
-      if (current) return JSON.parse(current);
-      const legacy = localStorage.getItem(LEGACY_KEY);
-      if (legacy) return JSON.parse(legacy);
-    } catch (_) {}
-    return null;
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   function save() {
@@ -95,15 +138,21 @@
     $('#resetTop').hidden = !state.started;
   }
 
-  function show(id, { savePhase = true } = {}) {
-    if (savePhase) state.phase = id;
+  function show(id) {
+    state.phase = id;
     screens.forEach((screen) => screen.classList.toggle('active', screen.id === id));
     window.scrollTo({ top: 0, behavior: 'instant' });
     save();
   }
 
-  function cleanName(value) {
-    return String(value || '').trim().replace(/\s+/g, ' ');
+  function setError(element, message = '') {
+    element.textContent = message;
+    element.hidden = !message;
+  }
+
+  function setSuccess(message = '') {
+    $('#termSuccess').textContent = message;
+    $('#termSuccess').hidden = !message;
   }
 
   function escapeHtml(value) {
@@ -114,7 +163,7 @@
 
   function shuffle(items) {
     const a = [...items];
-    for (let i = a.length - 1; i > 0; i--) {
+    for (let i = a.length - 1; i > 0; i -= 1) {
       const j = Math.floor(Math.random() * (i + 1));
       [a[i], a[j]] = [a[j], a[i]];
     }
@@ -123,11 +172,6 @@
 
   function vibrate(pattern = 30) {
     if (navigator.vibrate) navigator.vibrate(pattern);
-  }
-
-  function setError(element, message = '') {
-    element.textContent = message;
-    element.hidden = !message;
   }
 
   function playerById(id) {
@@ -151,11 +195,33 @@
     `).join('');
   }
 
+  function recommendedTarget() {
+    return Math.max(6, Math.min(80, state.players.length * 3));
+  }
+
+  function syncTargetToRecommendation() {
+    if (!state.targetLocked) state.termTarget = recommendedTarget();
+  }
+
+  function setMode(mode) {
+    state.mode = mode === 'random' ? 'random' : 'own';
+    $$('[data-mode]').forEach((button) => {
+      const active = button.dataset.mode === state.mode;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-checked', String(active));
+    });
+  }
+
+  $$('[data-mode]').forEach((button) => {
+    button.addEventListener('click', () => setMode(button.dataset.mode));
+  });
+
   $('#setupStart').addEventListener('click', () => {
     clearTimer();
+    const mode = state.mode;
     state = fresh();
+    state.mode = mode;
     state.duration = +$('#duration').value;
-    state.perPlayer = +$('#perPlayer').value;
     state.started = true;
     renderPlayers();
     show('players');
@@ -177,6 +243,7 @@
       input.focus();
       return;
     }
+
     if (state.players.some((p) => p.name.localeCompare(name, 'de', { sensitivity: 'accent' }) === 0)) {
       setError($('#playerError'), 'Diesen Namen gibt es bereits.');
       input.select();
@@ -184,6 +251,7 @@
     }
 
     state.players.push({ id: makeId(), name });
+    syncTargetToRecommendation();
     input.value = '';
     renderPlayers();
     save();
@@ -194,6 +262,7 @@
     state.players = state.players.filter((p) => p.id !== id);
     state.teamMembers = state.teamMembers.map((team) => team.filter((playerId) => playerId !== id));
     state.teamTurnIndex = [0, 0];
+    syncTargetToRecommendation();
     renderPlayers();
     save();
   }
@@ -223,10 +292,37 @@
       ? `Noch ${2 - count} Spieler benötigt.`
       : `${count} Spieler eingetragen.`;
     $('#toTeams').disabled = count < 2;
+    $('#targetCard').hidden = count < 2;
+
+    if (count >= 2) {
+      const recommendation = recommendedTarget();
+      if (!state.targetLocked) state.termTarget = recommendation;
+      $('#termTarget').value = String(state.termTarget);
+      $('#targetHint').textContent = `Empfohlen: ${recommendation} Begriffe (≈ 3 pro Person)`;
+    }
   }
+
+  function setTarget(value, lock = true) {
+    const parsed = Math.max(6, Math.min(80, Math.round(+value || 6)));
+    state.termTarget = parsed;
+    if (lock) state.targetLocked = true;
+    $('#termTarget').value = String(parsed);
+    save();
+  }
+
+  $('#termTarget').addEventListener('change', () => setTarget($('#termTarget').value, true));
+  $('#targetMinus').addEventListener('click', () => setTarget(state.termTarget - 1, true));
+  $('#targetPlus').addEventListener('click', () => setTarget(state.termTarget + 1, true));
+  $('#useRecommendedTarget').addEventListener('click', () => {
+    state.targetLocked = false;
+    setTarget(recommendedTarget(), false);
+    renderPlayers();
+  });
 
   $('#toTeams').addEventListener('click', () => {
     if (state.players.length < 2) return;
+    const typedTarget = Math.max(6, Math.min(80, Math.round(+$('#termTarget').value || recommendedTarget())));
+    setTarget(typedTarget, state.targetLocked || typedTarget !== recommendedTarget());
     if (state.teamMode === 'random') assignRandomTeams();
     else ensureManualAssignment();
     renderTeams();
@@ -238,7 +334,6 @@
     setError($('#teamError'));
     if (state.teamMode === 'random') assignRandomTeams();
     else ensureManualAssignment();
-    renderTeamMode();
     renderTeams();
     save();
   }
@@ -308,7 +403,7 @@
             const player = playerById(id);
             if (!player) return '';
             return `
-              <div class="member" data-player-id="${id}" data-team-index="${teamIndex}" ${state.teamMode === 'manual' ? 'role="button" tabindex="0" aria-label="' + escapeHtml(player.name) + ' verschieben"' : ''}>
+              <div class="member" data-player-id="${id}" data-team-index="${teamIndex}" ${state.teamMode === 'manual' ? `role="button" tabindex="0" aria-label="${escapeHtml(player.name)} verschieben"` : ''}>
                 ${state.teamMode === 'manual' ? '<span class="dragHandle" aria-hidden="true">⠿</span>' : ''}
                 <span>${escapeHtml(player.name)}</span>
               </div>
@@ -340,9 +435,7 @@
       member.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
-          const playerId = member.dataset.playerId;
-          const from = +member.dataset.teamIndex;
-          movePlayerToTeam(playerId, 1 - from);
+          movePlayerToTeam(member.dataset.playerId, 1 - +member.dataset.teamIndex);
         }
       });
     });
@@ -351,18 +444,26 @@
   function startDrag(event) {
     if (state.teamMode !== 'manual' || event.button > 0) return;
     const member = event.currentTarget;
-    const playerId = member.dataset.playerId;
-    const player = playerById(playerId);
+    const player = playerById(member.dataset.playerId);
     if (!player) return;
 
     event.preventDefault();
-    member.setPointerCapture?.(event.pointerId);
+    if (member.setPointerCapture) member.setPointerCapture(event.pointerId);
+
     const ghost = document.createElement('div');
     ghost.className = 'dragGhost';
     ghost.textContent = player.name;
     document.body.appendChild(ghost);
 
-    drag = { pointerId: event.pointerId, playerId, from: +member.dataset.teamIndex, member, ghost, target: null };
+    drag = {
+      pointerId: event.pointerId,
+      playerId: member.dataset.playerId,
+      from: +member.dataset.teamIndex,
+      member,
+      ghost,
+      target: null
+    };
+
     member.classList.add('dragging');
     positionGhost(event.clientX, event.clientY);
     updateDropTarget(event.clientX, event.clientY);
@@ -388,7 +489,7 @@
     if (!drag) return;
     $$('.teamBox').forEach((box) => box.classList.remove('dropTarget'));
     const element = document.elementFromPoint(x, y);
-    const box = element?.closest?.('.teamBox');
+    const box = element && element.closest ? element.closest('.teamBox') : null;
     if (!box) {
       drag.target = null;
       return;
@@ -399,7 +500,9 @@
 
   function endDrag(event) {
     if (!drag || event.pointerId !== drag.pointerId) return;
-    const { playerId, from, target } = drag;
+    const playerId = drag.playerId;
+    const from = drag.from;
+    const target = drag.target;
     cleanupDrag();
     if (target !== null && target !== from) movePlayerToTeam(playerId, target);
   }
@@ -436,64 +539,137 @@
   $('#confirmTeams').addEventListener('click', () => {
     if (!validateTeams(true)) return;
     state.teams = ['Team 1', 'Team 2'];
-    state.collectIndex = 0;
-    state.allTerms = [];
     state.teamTurnIndex = [0, 0];
-    renderCollect();
-    show('collect');
+    state.allTerms = [];
+
+    if (state.mode === 'random') {
+      state.allTerms = createRandomTerms(state.termTarget);
+      prepareGame();
+    } else {
+      renderCollect();
+      show('collect');
+      requestAnimationFrame(() => $('#termInput').focus());
+    }
   });
 
+  function createRandomTerms(count) {
+    const unique = [...new Set(WORD_POOL)];
+    return shuffle(unique).slice(0, Math.min(count, unique.length));
+  }
+
   function renderCollect() {
-    const player = state.players[state.collectIndex];
-    if (!player) {
-      prepareGame();
-      return;
+    const count = state.allTerms.length;
+    const target = state.termTarget;
+    const remaining = Math.max(0, target - count);
+    const complete = count >= target;
+
+    $('#poolCount').textContent = `${count} von ${target}`;
+    $('#poolRemaining').textContent = complete ? 'Pool komplett ✓' : `Noch ${remaining} ${remaining === 1 ? 'Begriff' : 'Begriffe'} fehlen`;
+    $('#progressFill').style.width = `${Math.min(100, Math.round((count / target) * 100))}%`;
+    $('#addTerm').disabled = complete;
+    $('#suggestTerm').disabled = complete;
+    $('#termInput').disabled = complete;
+    $('#passPhone').hidden = complete;
+    $('#startCollectedGame').hidden = !complete;
+    if (complete) {
+      $('#termInput').value = '';
+      setError($('#termError'));
+      setSuccess('Genug Begriffe gesammelt. Ihr könnt starten.');
     }
-    $('#collectPlayerBadge').textContent = `👤 ${player.name}`;
-    $('#termsLabel').textContent = `${player.name}: deine ${state.perPlayer} Begriffe`;
-    $('#termHint').textContent = `Bitte genau ${state.perPlayer} ${state.perPlayer === 1 ? 'Begriff' : 'Begriffe'} eingeben – einen pro Zeile.`;
-    $('#collectedCount').textContent = `${state.allTerms.length} ${state.allTerms.length === 1 ? 'Begriff' : 'Begriffe'} gesammelt`;
-    $('#collectProgress').textContent = `Person ${state.collectIndex + 1} von ${state.players.length}`;
-    $('#termsInput').value = '';
-    setError($('#termError'));
   }
 
-  function parseTerms() {
-    return $('#termsInput').value.split(/\n/).map((value) => value.trim()).filter(Boolean);
+  function isDuplicateTerm(term) {
+    return state.allTerms.some((existing) => existing.localeCompare(term, 'de', { sensitivity: 'base' }) === 0);
   }
 
-  $('#savePlayer').addEventListener('click', () => {
-    const terms = parseTerms();
+  function addCurrentTerm() {
+    const input = $('#termInput');
+    const term = cleanTerm(input.value);
     setError($('#termError'));
-    if (terms.length !== state.perPlayer) {
-      setError($('#termError'), `Bitte genau ${state.perPlayer} Begriffe eingeben – einen pro Zeile.`);
-      $('#termsInput').focus();
+    setSuccess('');
+
+    if (state.allTerms.length >= state.termTarget) {
+      renderCollect();
+      return;
+    }
+    if (!term) {
+      setError($('#termError'), 'Bitte gib zuerst einen Begriff ein.');
+      input.focus();
+      return;
+    }
+    if (isDuplicateTerm(term)) {
+      setError($('#termError'), 'Diesen Begriff gibt es schon im Pool.');
+      input.select();
       return;
     }
 
-    state.allTerms.push(...terms);
-    state.collectIndex += 1;
-    vibrate(20);
-    if (state.collectIndex >= state.players.length) {
-      $('#privacyText').textContent = 'Alle Begriffe sind gesammelt. Gebt das Handy an die Gruppe zurück.';
-      $('#nextPlayer').textContent = 'Spiel starten';
-    } else {
-      const next = state.players[state.collectIndex];
-      $('#privacyText').textContent = `Begriffe gespeichert. Gib das Handy an ${next.name} weiter.`;
-      $('#nextPlayer').textContent = `Weiter zu ${next.name}`;
+    state.allTerms.push(term);
+    input.value = '';
+    save();
+    renderCollect();
+    vibrate(18);
+
+    if (state.allTerms.length < state.termTarget) {
+      setSuccess('Gespeichert ✓');
+      input.focus();
     }
+  }
+
+  $('#addTerm').addEventListener('click', addCurrentTerm);
+  $('#termInput').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      addCurrentTerm();
+    }
+  });
+
+  $('#suggestTerm').addEventListener('click', () => {
+    const used = new Set(state.allTerms.map((term) => term.toLocaleLowerCase('de')));
+    const current = cleanTerm($('#termInput').value).toLocaleLowerCase('de');
+    const options = [...new Set(WORD_POOL)].filter((term) => {
+      const key = term.toLocaleLowerCase('de');
+      return !used.has(key) && key !== current;
+    });
+
+    if (!options.length) {
+      setError($('#termError'), 'Keine weiteren Vorschläge verfügbar.');
+      return;
+    }
+
+    const suggestion = options[Math.floor(Math.random() * options.length)];
+    $('#termInput').value = suggestion;
+    setError($('#termError'));
+    setSuccess('Vorschlag eingefügt – du kannst ihn übernehmen oder ändern.');
+    $('#termInput').focus();
+    $('#termInput').select();
+  });
+
+  $('#passPhone').addEventListener('click', () => {
+    $('#termInput').value = '';
+    setError($('#termError'));
+    setSuccess('');
+    $('#privacyText').textContent = `${state.allTerms.length} von ${state.termTarget} Begriffen sind gesammelt. Gib das Handy einfach weiter.`;
     show('privacy');
   });
 
-  $('#nextPlayer').addEventListener('click', () => {
-    if (state.collectIndex >= state.players.length) {
-      prepareGame();
-      return;
-    }
+  $('#continueCollect').addEventListener('click', () => {
     renderCollect();
     show('collect');
-    requestAnimationFrame(() => $('#termsInput').focus());
+    requestAnimationFrame(() => $('#termInput').focus());
   });
+
+  $('#startCollectedGame').addEventListener('click', () => {
+    if (state.allTerms.length < state.termTarget) return;
+    prepareGame();
+  });
+
+  function validateStoredSetup() {
+    const all = state.teamMembers.flat();
+    return state.players.length >= 2
+      && state.teamMembers.every((team) => team.length > 0)
+      && all.length === state.players.length
+      && new Set(all).size === state.players.length;
+  }
 
   function prepareGame() {
     if (!validateStoredSetup()) {
@@ -501,12 +677,14 @@
       show('players');
       return;
     }
-    const expected = state.players.length * state.perPlayer;
-    if (state.allTerms.length !== expected) {
-      state.collectIndex = Math.min(state.collectIndex, state.players.length - 1);
-      renderCollect();
-      show('collect');
-      return;
+
+    if (state.allTerms.length < state.termTarget) {
+      if (state.mode === 'random') state.allTerms = createRandomTerms(state.termTarget);
+      else {
+        renderCollect();
+        show('collect');
+        return;
+      }
     }
 
     state.round = 0;
@@ -518,14 +696,6 @@
     state.teamTurnIndex = [0, 0];
     renderRoundIntro();
     show('roundIntro');
-  }
-
-  function validateStoredSetup() {
-    const all = state.teamMembers.flat();
-    return state.players.length >= 2
-      && state.teamMembers.every((team) => team.length > 0)
-      && all.length === state.players.length
-      && new Set(all).size === state.players.length;
   }
 
   function renderRoundIntro() {
@@ -552,7 +722,9 @@
     $('#turnEmoji').textContent = round.emoji;
     $('#turnInstruction').textContent = state.round === 0
       ? 'Du erklärst jetzt die Begriffe für dein Team.'
-      : state.round === 1 ? 'Ein Hinweiswort pro Begriff – nicht mehr.' : 'Nur darstellen. Kein Wort, kein Geräusch.';
+      : state.round === 1
+        ? 'Ein Hinweiswort pro Begriff – nicht mehr.'
+        : 'Nur darstellen. Kein Wort, kein Geräusch.';
   }
 
   $('#beginTurn').addEventListener('click', startTurn);
@@ -562,6 +734,7 @@
       finishRound();
       return;
     }
+
     const player = currentExplainer();
     state.turnPoints = 0;
     state.current = null;
@@ -573,6 +746,7 @@
     nextWord();
     show('play');
     clearTimer();
+
     timerId = window.setInterval(() => {
       timeLeft -= 1;
       $('#timer').textContent = timeLeft;
@@ -613,7 +787,7 @@
   });
 
   function advanceExplainer(teamIndex) {
-    const count = state.teamMembers[teamIndex]?.length || 0;
+    const count = state.teamMembers[teamIndex] ? state.teamMembers[teamIndex].length : 0;
     if (count) state.teamTurnIndex[teamIndex] = (state.teamTurnIndex[teamIndex] + 1) % count;
   }
 
@@ -675,15 +849,24 @@
   $('#restartSame').addEventListener('click', () => {
     const keep = {
       duration: state.duration,
-      perPlayer: state.perPlayer,
+      mode: state.mode,
       players: state.players.map((p) => ({ ...p })),
       teams: ['Team 1', 'Team 2'],
       teamMembers: state.teamMembers.map((team) => [...team]),
-      teamMode: state.teamMode
+      teamMode: state.teamMode,
+      termTarget: state.termTarget,
+      targetLocked: state.targetLocked
     };
-    state = { ...fresh(), ...keep, started: true, phase: 'collect' };
-    renderCollect();
-    show('collect');
+
+    state = { ...fresh(), ...keep, started: true };
+
+    if (state.mode === 'random') {
+      state.allTerms = createRandomTerms(state.termTarget);
+      prepareGame();
+    } else {
+      renderCollect();
+      show('collect');
+    }
   });
 
   function clearTimer() {
@@ -697,10 +880,9 @@
     clearTimer();
     cleanupDrag();
     localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(LEGACY_KEY);
     state = fresh();
     $('#duration').value = '60';
-    $('#perPlayer').value = '3';
+    setMode('own');
     $('#resetTop').hidden = true;
     show('home');
   }
@@ -712,7 +894,7 @@
 
   function resume() {
     $('#duration').value = String(state.duration);
-    $('#perPlayer').value = String(state.perPlayer);
+    setMode(state.mode);
     $('#resetTop').hidden = !state.started;
 
     if (!state.started) {
@@ -721,11 +903,13 @@
     }
 
     const phase = state.phase;
+
     if (phase === 'players') {
       renderPlayers();
       show('players');
       return;
     }
+
     if (phase === 'teams') {
       if (state.teamMode === 'manual') ensureManualAssignment();
       else if (!validateStoredSetup()) assignRandomTeams();
@@ -733,46 +917,50 @@
       show('teams');
       return;
     }
-    if ((phase === 'collect' || phase === 'privacy') && state.collectIndex < state.players.length) {
+
+    if (phase === 'collect' || phase === 'privacy') {
+      if (state.mode === 'random') {
+        if (!state.allTerms.length) state.allTerms = createRandomTerms(state.termTarget);
+        prepareGame();
+        return;
+      }
       renderCollect();
       if (phase === 'privacy') {
-        const next = state.players[state.collectIndex];
-        $('#privacyText').textContent = `Begriffe gespeichert. Gib das Handy an ${next.name} weiter.`;
-        $('#nextPlayer').textContent = `Weiter zu ${next.name}`;
+        $('#privacyText').textContent = `${state.allTerms.length} von ${state.termTarget} Begriffen sind gesammelt. Gib das Handy einfach weiter.`;
+        show('privacy');
+      } else {
+        show('collect');
       }
-      show(phase);
-      return;
-    }
-    if (phase === 'privacy' && state.collectIndex >= state.players.length) {
-      $('#privacyText').textContent = 'Alle Begriffe sind gesammelt. Gebt das Handy an die Gruppe zurück.';
-      $('#nextPlayer').textContent = 'Spiel starten';
-      show('privacy');
       return;
     }
 
-    const hasCompleteTerms = state.allTerms.length === state.players.length * state.perPlayer && state.allTerms.length > 0;
-    if (!hasCompleteTerms || !validateStoredSetup()) {
+    const hasTerms = state.allTerms.length >= state.termTarget && state.allTerms.length > 0;
+    if (!hasTerms || !validateStoredSetup()) {
       renderPlayers();
       show('players');
       return;
     }
+
     if (phase === 'play') {
       state.current = null;
       renderTurnReady();
       show('turnReady');
       return;
     }
+
     if (phase === 'turnReady') {
       renderTurnReady();
       show('turnReady');
       return;
     }
+
     if (phase === 'turnEnd') {
       $('#turnPoints').textContent = state.turnPoints || 0;
       $('#endScores').innerHTML = scoreHTML(state.activeTeam);
       show('turnEnd');
       return;
     }
+
     if (phase === 'roundEnd') {
       $('#roundEndTitle').textContent = `${rounds[state.round].title} geschafft`;
       $('#roundEndText').textContent = `Alle ${state.allTerms.length} Begriffe sind durch.`;
@@ -781,10 +969,12 @@
       show('roundEnd');
       return;
     }
+
     if (phase === 'finish') {
       finishGame();
       return;
     }
+
     renderRoundIntro();
     show('roundIntro');
   }
