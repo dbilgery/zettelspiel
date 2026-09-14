@@ -48,9 +48,10 @@ function renderTurnReady() {
   const player = currentExplainer();
   el('turnRoundBadge').textContent = `Runde ${state.round + 1} · ${round.title}`;
   el('turnEmoji').textContent = round.emoji;
-  el('turnTeam').textContent = state.teams[state.activeTeam];
-  el('turnPlayer').textContent = player ? player.name : 'Spieler';
+  el('turnTeam').textContent = player ? player.name : state.teams[state.activeTeam];
+  el('turnPlayer').textContent = state.teams[state.activeTeam];
   el('turnInstruction').textContent = round.rule;
+  el('beginTurn').textContent = 'Bereit';
 }
 
 function startCountdown() {
@@ -60,7 +61,7 @@ function startCountdown() {
   const round = rounds[state.round];
   const player = currentExplainer();
   el('countdownRound').textContent = `Runde ${state.round + 1} · ${round.title}`;
-  el('countdownTeam').textContent = `${state.teams[state.activeTeam]}${player ? ` · ${player.name}` : ''}`;
+  el('countdownTeam').textContent = player ? player.name : state.teams[state.activeTeam];
   show('countdown');
 
   const values = ['3','2','1','LOS!'];
@@ -145,6 +146,22 @@ function advanceExplainer(teamIndex) {
   if (count) state.teamTurnIndex[teamIndex] = (state.teamTurnIndex[teamIndex] + 1) % count;
 }
 
+function renderTurnHandoff(justPlayed) {
+  const nextTeam = 1 - justPlayed;
+  const nextPlayer = explainerFor(nextTeam);
+  const nextName = nextPlayer ? nextPlayer.name : 'Nächster Spieler';
+  el('turnEndTeam').textContent = `${state.teams[justPlayed]} · Zug beendet`;
+  el('turnPoints').textContent = String(state.turnPoints || 0);
+  el('turnPointsLabel').textContent = state.turnPoints === 1 ? 'Wort' : 'Wörter';
+  el('nextUpText').innerHTML = `
+    <span class="handoffLabel">Handy an</span>
+    <strong>${escapeHtml(nextName)}</strong>
+    <span class="handoffTeam">${escapeHtml(state.teams[nextTeam])}</span>
+  `;
+  el('nextTurn').textContent = 'Handy übergeben';
+  renderScores('endScores', justPlayed);
+}
+
 function endTurn() {
   if (state.phase !== 'play') return;
   clearTimer();
@@ -153,13 +170,7 @@ function endTurn() {
   advanceExplainer(state.activeTeam);
 
   const justPlayed = state.activeTeam;
-  const nextTeam = 1 - justPlayed;
-  const nextPlayer = explainerFor(nextTeam);
-  el('turnEndTeam').textContent = state.teams[justPlayed];
-  el('turnPoints').textContent = String(state.turnPoints);
-  el('turnPointsLabel').textContent = state.turnPoints === 1 ? 'Begriff' : 'Begriffe';
-  el('nextUpText').textContent = `${state.teams[nextTeam]} ist als Nächstes dran${nextPlayer ? ` · ${nextPlayer.name}` : ''}.`;
-  renderScores('endScores', justPlayed);
+  renderTurnHandoff(justPlayed);
   show('turnEnd');
 }
 
@@ -299,14 +310,7 @@ function resume() {
     return;
   }
   if (state.phase === 'turnEnd') {
-    const justPlayed = state.activeTeam;
-    const nextTeam = 1 - justPlayed;
-    el('turnEndTeam').textContent = state.teams[justPlayed];
-    el('turnPoints').textContent = String(state.turnPoints || 0);
-    el('turnPointsLabel').textContent = state.turnPoints === 1 ? 'Begriff' : 'Begriffe';
-    const nextPlayer = explainerFor(nextTeam);
-    el('nextUpText').textContent = `${state.teams[nextTeam]} ist als Nächstes dran${nextPlayer ? ` · ${nextPlayer.name}` : ''}.`;
-    renderScores('endScores', justPlayed);
+    renderTurnHandoff(state.activeTeam);
     show('turnEnd');
     return;
   }
