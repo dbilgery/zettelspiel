@@ -1,10 +1,10 @@
 'use strict';
 
-const TIME_UP_SIGNAL_START = 0.1;
+const TIME_UP_SIGNAL_START = 0.06;
 
 function createTimeUpSignalUrl() {
-  const sampleRate = 16000;
-  const duration = 3.05;
+  const sampleRate = 22050;
+  const duration = 3.2;
   const sampleCount = Math.floor(sampleRate * duration);
   const bytesPerSample = 2;
   const dataSize = sampleCount * bytesPerSample;
@@ -29,38 +29,42 @@ function createTimeUpSignalUrl() {
   writeString(36, 'data');
   view.setUint32(40, dataSize, true);
 
-  const ringStarts = [0.1, 1.1, 2.1];
-  const ringDuration = 0.72;
+  // Three unmistakable timer rings. Each ring is a quick double strike with a metallic tail.
+  const groups = [0.06, 1.06, 2.06];
+  const strikes = groups.flatMap((start) => [
+    { start, pitch: 1 },
+    { start: start + 0.18, pitch: 1.055 },
+  ]);
 
   for (let i = 0; i < sampleCount; i += 1) {
     const t = i / sampleRate;
     let sample = 0;
 
-    for (const start of ringStarts) {
-      const local = t - start;
-      if (local < 0 || local > ringDuration) continue;
+    for (const strike of strikes) {
+      const local = t - strike.start;
+      if (local < 0 || local > 0.78) continue;
 
-      const attack = Math.min(1, local / 0.012);
-      const decay = Math.exp(-4.1 * local / ringDuration);
-      const envelope = attack * decay;
+      const attack = Math.min(1, local / 0.0045);
+      const decay = Math.exp(-5.2 * local);
+      const tail = Math.exp(-2.8 * local);
+      const p = strike.pitch;
 
-      // Bright, bell-like timer signal: clear fundamental plus soft harmonics.
-      const fundamental = Math.sin(2 * Math.PI * 1175 * local);
-      const harmonic = Math.sin(2 * Math.PI * 1762.5 * local + 0.18);
-      const shimmer = Math.sin(2 * Math.PI * 2350 * local + 0.34);
-      const body = Math.sin(2 * Math.PI * 783.3 * local + 0.1);
-      const pulse = 0.9 + 0.1 * Math.sin(2 * Math.PI * 7.5 * local);
+      // Bell/alarm spectrum: strong body plus inharmonic metallic overtones.
+      const body = Math.sin(2 * Math.PI * 784 * p * local);
+      const bright = Math.sin(2 * Math.PI * 1176 * p * local + 0.12);
+      const metal1 = Math.sin(2 * Math.PI * 1568 * p * local + 0.31);
+      const metal2 = Math.sin(2 * Math.PI * 2135 * p * local + 0.47);
+      const shimmer = Math.sin(2 * Math.PI * 2744 * p * local + 0.19);
 
-      sample += envelope * pulse * (
-        fundamental * 0.58 +
-        harmonic * 0.24 +
-        shimmer * 0.10 +
-        body * 0.08
+      sample += attack * (
+        decay * (body * 0.46 + bright * 0.31 + metal1 * 0.15) +
+        tail * (metal2 * 0.055 + shimmer * 0.025)
       );
     }
 
-    const clipped = Math.max(-1, Math.min(1, sample * 0.72));
-    view.setInt16(44 + i * bytesPerSample, Math.round(clipped * 32767), true);
+    // Tiny soft-clipping keeps the alarm present on phone speakers without sounding harsh.
+    const driven = Math.tanh(sample * 1.42) * 0.82;
+    view.setInt16(44 + i * bytesPerSample, Math.round(driven * 32767), true);
   }
 
   return URL.createObjectURL(new Blob([buffer], { type: 'audio/wav' }));
@@ -115,7 +119,7 @@ function unlockTimeUpSound() {
           timeUpAudio.currentTime = TIME_UP_SIGNAL_START;
           timeUpAudioUnlocked = true;
         } catch (_) {}
-      }, 45);
+      }, 40);
     };
     if (playback && typeof playback.then === 'function') playback.then(arm).catch(() => {});
     else arm();
@@ -176,7 +180,7 @@ endTurn = function endTurnWithSignal() {
   playTimeUpSound();
   flashTimeUp();
   const result = originalEndTurn();
-  window.setTimeout(() => vibrate([250,750,250,750,250]), 0);
+  window.setTimeout(() => vibrate([260,740,260,740,260]), 0);
   return result;
 };
 
