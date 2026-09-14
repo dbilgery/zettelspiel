@@ -66,6 +66,33 @@ fullReset = function fullResetPolished() {
   return baseFullReset();
 };
 
+// "Mit denselben Wörtern" means exactly that: same teams, settings and word pool.
+restartSame = function restartWithSameWords() {
+  releaseGameWakeLock();
+  const words = [...state.allTerms];
+  if (!words.length) {
+    fullReset();
+    return;
+  }
+
+  const keep = {
+    mode: state.mode,
+    duration: state.duration,
+    players: state.players.map((player) => ({ ...player })),
+    teams: ['Team 1', 'Team 2'],
+    teamMembers: state.teamMembers.map((team) => [...team]),
+    teamMode: state.teamMode,
+    termsPerPlayer: [...state.termsPerPlayer],
+    allTerms: words,
+    termTarget: words.length,
+    pile: shuffle(words),
+  };
+
+  state = { ...fresh(), ...keep, started: true };
+  renderRoundIntro();
+  show('roundIntro');
+};
+
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && state.phase === 'play') requestGameWakeLock();
   else releaseGameWakeLock();
