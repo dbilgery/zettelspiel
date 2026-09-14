@@ -138,7 +138,7 @@ function renderTermSettings() {
   });
   state.termTarget = Math.min(WORD_POOL.length, state.players.length * value);
   const summary = el('termSummary');
-  if (summary) summary.textContent = `${state.players.length} Spieler · ${state.termTarget} Begriffe insgesamt`;
+  if (summary) summary.textContent = `${state.players.length} Spieler · ${state.termTarget} Wörter insgesamt`;
 }
 
 function movePlayerToTeam(playerId, targetTeam) {
@@ -250,7 +250,7 @@ function addCurrentTerm() {
   setError(el('termError'));
   setSuccess('');
   if (!term) {
-    setError(el('termError'), 'Begriff fehlt.');
+    setError(el('termError'), 'Wort fehlt.');
     input.focus();
     return;
   }
