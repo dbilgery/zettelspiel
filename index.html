@@ -9,9 +9,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Zettelspiel">
   <title>Zettelspiel</title>
-  <link rel="manifest" href="manifest.json?v=20260914-4000">
+  <link rel="manifest" href="manifest.json?v=20260914-4100">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20260914-4000">
+  <link rel="stylesheet" href="styles.css?v=20260914-4100">
   <style>
     .navBar{grid-template-columns:104px minmax(0,1fr) 104px}
     .navIcon.back{grid-column:1;grid-row:1;justify-self:start}
@@ -20,10 +20,15 @@
     .navText{min-height:32px;padding:0 9px;border:1px solid var(--border);border-radius:7px;background:rgba(255,255,255,.72);color:var(--muted);font-size:13px;font-weight:600;white-space:nowrap;box-shadow:var(--shadow-sm)}
     .navText:active{background:var(--surface-soft);color:var(--text-soft)}
 
-    .teamModeRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;margin-bottom:14px}
-    .teamModeRow .compactSegmented{margin:0}
-    .teamModeRow .compactButton{height:42px;white-space:nowrap;padding:0 13px}
-    .termChoiceCard{margin-top:22px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
+    .teamAssignmentControl{margin-bottom:20px}
+    .teamSetupLabel{display:block;margin:0 2px 8px;color:var(--muted);font-size:13px;font-weight:650;letter-spacing:.045em;text-transform:uppercase}
+    .teamAssignmentControl .compactSegmented{margin:0}
+    .teamListHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 9px}
+    .teamListHead>span{font-size:14px;font-weight:650;color:var(--text-soft)}
+    .teamShuffleAction{min-height:36px;padding:0 2px;border:0;background:transparent;color:var(--muted);font-size:13px;font-weight:650;white-space:nowrap}
+    .teamShuffleAction:active{color:var(--text)}
+
+    .termChoiceCard{margin-top:24px;padding:20px 0 0;background:transparent;border:0;border-top:1px solid var(--border);border-radius:0;box-shadow:none}
     .termChoiceHeader{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
     .termChoiceHeader span{font-size:14px;font-weight:650;color:var(--text-soft)}
     .termChoice{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;background:var(--surface-soft);border:1px solid var(--border);border-radius:10px}
@@ -47,10 +52,13 @@
     #nextUpText .handoffTeam{font-size:14px;font-weight:600;color:var(--muted)}
     #turnEnd .scoreList{margin-top:6px}
 
+    .gameActions{grid-template-columns:1fr 1.2fr}
+    #finish .primaryButton{margin-top:24px}
+
     @media(max-width:390px){
       .navBar{grid-template-columns:96px minmax(0,1fr) 96px}
       .navText{padding:0 7px;font-size:12.5px}
-      .teamModeRow{grid-template-columns:1fr}.teamModeRow .compactButton{justify-self:end;height:36px}.termChoiceCard{margin-top:18px}
+      .termChoiceCard{margin-top:22px}
       #turnReady h2{font-size:38px}
       #nextUpText strong{font-size:31px}
     }
@@ -87,10 +95,13 @@
 
     <section class="screen" id="teams">
       <div class="pageHeader"><span class="stepLabel">2 / 2</span><h2>Teams</h2></div>
-      <div class="teamModeRow">
+
+      <div class="teamAssignmentControl">
+        <span class="teamSetupLabel">Aufteilung</span>
         <div class="segmented compactSegmented" role="tablist" aria-label="Teameinteilung"><button class="segment active" id="randomTab" type="button" role="tab" aria-selected="true">Zufällig</button><button class="segment" id="manualTab" type="button" role="tab" aria-selected="false">Manuell</button></div>
-        <button class="compactButton" id="shuffleTeams" type="button">Neu mischen</button>
       </div>
+
+      <div class="teamListHead"><span>Teams</span><button class="teamShuffleAction" id="shuffleTeams" type="button">↻ Neu mischen</button></div>
       <div class="teamGrid" id="teamColumns"></div><p class="inlineError" id="teamError" hidden></p>
 
       <div class="termChoiceCard">
@@ -117,12 +128,12 @@
     <section class="screen" id="roundIntro"><div class="roundHero"><div class="roundNumber" id="roundBadge">Runde 1 von 3</div><div class="roundEmoji" id="roundEmoji">🗣️</div><h2 id="roundTitle">Erklären</h2><p id="roundRule"></p></div><div class="scoreList" id="introScores"></div><p class="centerNote" id="startsText"></p><button class="primaryButton bottomAction" id="startRound" type="button">Start</button></section>
     <section class="screen centeredScreen" id="turnReady"><div class="roundPill" id="turnRoundBadge">Runde 1</div><div class="turnEmoji" id="turnEmoji">🗣️</div><h2 id="turnTeam">Spieler</h2><div class="playerPill" id="turnPlayer">Team 1</div><p class="readyInstruction" id="turnInstruction"></p><button class="primaryButton" id="beginTurn" type="button">Bereit</button></section>
     <section class="screen centeredScreen countdownScreen" id="countdown"><div class="roundPill" id="countdownRound"></div><p id="countdownTeam"></p><div class="countdownNumber" id="countdownNumber" aria-live="assertive">3</div></section>
-    <section class="screen gameScreen" id="play"><div class="gameTop"><div class="gameMeta"><div class="roundPill" id="playRound"></div><div class="playerPill subtle" id="playPlayer"></div></div><div class="timer" id="timer">60</div></div><div class="wordCard" id="wordCard"><div class="word" id="currentWord">Wort</div></div><div class="gameActions"><button class="skipButton" id="skipWord" type="button">Weiter</button><button class="correctButton" id="gotWord" type="button">Erraten</button></div></section>
+    <section class="screen gameScreen" id="play"><div class="gameTop"><div class="gameMeta"><div class="roundPill" id="playRound"></div><div class="playerPill subtle" id="playPlayer"></div></div><div class="timer" id="timer">60</div></div><div class="wordCard" id="wordCard"><div class="word" id="currentWord">Wort</div></div><div class="gameActions"><button class="skipButton" id="skipWord" type="button">Überspringen</button><button class="correctButton" id="gotWord" type="button">Erraten</button></div></section>
     <section class="screen" id="turnEnd"><div class="resultHero"><span class="stepLabel" id="turnEndTeam">Team 1 · Zug beendet</span><h2>Zeit!</h2><div class="bigResult"><strong id="turnPoints">0</strong><span id="turnPointsLabel">Wörter</span></div><p id="nextUpText"></p></div><div class="scoreList" id="endScores"></div><button class="primaryButton bottomAction" id="nextTurn" type="button">Handy übergeben</button></section>
     <section class="screen" id="roundEnd"><div class="resultHero"><h2 id="roundEndTitle">Runde geschafft</h2></div><div class="roundResult" id="roundResult"></div><div class="scoreList" id="roundEndScores"></div><p class="centerNote" id="roundLeader"></p><button class="primaryButton bottomAction" id="nextRound" type="button">Weiter</button></section>
-    <section class="screen" id="finish"><div class="finishHero"><div class="trophy">🏆</div><h2 id="winnerText"></h2><p id="winnerSub"></p></div><div class="scoreList" id="finalScores"></div><button class="primaryButton" id="restartSame" type="button">Nochmal spielen</button><button class="secondaryButton" id="fullReset" type="button">Neues Spiel</button></section>
+    <section class="screen" id="finish"><div class="finishHero"><div class="trophy">🏆</div><h2 id="winnerText"></h2><p id="winnerSub"></p></div><div class="scoreList" id="finalScores"></div><button class="primaryButton" id="restartSame" type="button">Mit denselben Wörtern</button><button class="secondaryButton" id="fullReset" type="button">Neues Spiel</button></section>
   </main>
 </div>
-<script src="app.js?v=20260914-4000"></script><script src="app-setup.js?v=20260914-4000"></script><script src="app-game.js?v=20260914-4000"></script><script src="timeup.js?v=20260914-4000"></script><script src="ux-polish.js?v=20260914-4000"></script><script src="app-init.js?v=20260914-4000"></script>
+<script src="app.js?v=20260914-4100"></script><script src="app-setup.js?v=20260914-4100"></script><script src="app-game.js?v=20260914-4100"></script><script src="timeup.js?v=20260914-4100"></script><script src="ux-polish.js?v=20260914-4100"></script><script src="app-init.js?v=20260914-4100"></script>
 </body>
 </html>
