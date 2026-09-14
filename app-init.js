@@ -15,26 +15,26 @@ teamUiStyle.textContent = `
     grid-area:label;
     padding-left:2px;
     color:var(--muted);
-    font-size:11px;
+    font-size:13px;
     font-weight:650;
-    letter-spacing:.06em;
+    letter-spacing:.045em;
     text-transform:uppercase;
   }
   .teamModeRow .compactSegmented{grid-area:mode!important;margin:0!important}
   .teamModeRow .compactButton{
     grid-area:shuffle;
-    min-height:30px!important;
+    min-height:34px!important;
     height:auto!important;
     padding:0!important;
     border:0!important;
     background:transparent!important;
     box-shadow:none!important;
     color:var(--muted)!important;
-    font-size:12px!important;
+    font-size:13px!important;
     font-weight:650!important;
     white-space:nowrap;
   }
-  .teamModeRow .compactButton::before{content:"↻";margin-right:5px;font-size:14px;font-weight:500}
+  .teamModeRow .compactButton::before{content:"↻";margin-right:5px;font-size:15px;font-weight:500}
   .teamModeRow .compactButton:active{background:transparent!important;color:var(--text)!important}
 `;
 document.head.appendChild(teamUiStyle);
