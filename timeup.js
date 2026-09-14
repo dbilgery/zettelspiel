@@ -4,7 +4,7 @@ const TIME_UP_SIGNAL_START = 0.06;
 
 function createTimeUpSignalUrl() {
   const sampleRate = 22050;
-  const duration = 3.2;
+  const duration = 3.32;
   const sampleCount = Math.floor(sampleRate * duration);
   const bytesPerSample = 2;
   const dataSize = sampleCount * bytesPerSample;
@@ -29,41 +29,47 @@ function createTimeUpSignalUrl() {
   writeString(36, 'data');
   view.setUint32(40, dataSize, true);
 
-  // Three unmistakable timer rings. Each ring is a quick double strike with a metallic tail.
-  const groups = [0.06, 1.06, 2.06];
-  const strikes = groups.flatMap((start) => [
-    { start, pitch: 1 },
-    { start: start + 0.18, pitch: 1.055 },
+  // Three modern two-note chimes. Clean sine-based spectrum with a soft shimmer,
+  // deliberately avoiding a harsh alarm or metallic kitchen-timer character.
+  const groups = [0.06, 1.08, 2.10];
+  const notes = groups.flatMap((start) => [
+    { start, frequency: 880.0, gain: 0.82 },
+    { start: start + 0.145, frequency: 1318.51, gain: 0.94 },
   ]);
 
   for (let i = 0; i < sampleCount; i += 1) {
     const t = i / sampleRate;
     let sample = 0;
 
-    for (const strike of strikes) {
-      const local = t - strike.start;
-      if (local < 0 || local > 0.78) continue;
+    for (const note of notes) {
+      const local = t - note.start;
+      if (local < 0 || local > 0.92) continue;
 
-      const attack = Math.min(1, local / 0.0045);
-      const decay = Math.exp(-5.2 * local);
-      const tail = Math.exp(-2.8 * local);
-      const p = strike.pitch;
+      const attack = Math.min(1, local / 0.008);
+      const mainDecay = Math.exp(-3.65 * local);
+      const overtoneDecay = Math.exp(-6.2 * local);
+      const shimmerDecay = Math.exp(-4.8 * local);
+      const f = note.frequency;
 
-      // Bell/alarm spectrum: strong body plus inharmonic metallic overtones.
-      const body = Math.sin(2 * Math.PI * 784 * p * local);
-      const bright = Math.sin(2 * Math.PI * 1176 * p * local + 0.12);
-      const metal1 = Math.sin(2 * Math.PI * 1568 * p * local + 0.31);
-      const metal2 = Math.sin(2 * Math.PI * 2135 * p * local + 0.47);
-      const shimmer = Math.sin(2 * Math.PI * 2744 * p * local + 0.19);
+      // A tiny pitch settle and close detuned companion create the polished,
+      // glassy movement of a modern phone chime without sounding synthetic.
+      const settle = 1 + 0.0035 * Math.exp(-12 * local);
+      const phase = 2 * Math.PI * f * settle * local;
+      const core = Math.sin(phase);
+      const companion = Math.sin(2 * Math.PI * (f + 2.2) * local + 0.08);
+      const octave = Math.sin(2 * Math.PI * f * 2 * local + 0.16);
+      const sparkle = Math.sin(2 * Math.PI * f * 2.997 * local + 0.31);
+      const body = Math.sin(2 * Math.PI * (f / 2) * local + 0.05);
 
-      sample += attack * (
-        decay * (body * 0.46 + bright * 0.31 + metal1 * 0.15) +
-        tail * (metal2 * 0.055 + shimmer * 0.025)
+      sample += note.gain * attack * (
+        mainDecay * (core * 0.52 + companion * 0.22 + body * 0.12) +
+        overtoneDecay * octave * 0.10 +
+        shimmerDecay * sparkle * 0.04
       );
     }
 
-    // Tiny soft-clipping keeps the alarm present on phone speakers without sounding harsh.
-    const driven = Math.tanh(sample * 1.42) * 0.82;
+    // Gentle limiting keeps it clear on iPhone speakers without becoming shrill.
+    const driven = Math.tanh(sample * 1.08) * 0.76;
     view.setInt16(44 + i * bytesPerSample, Math.round(driven * 32767), true);
   }
 
